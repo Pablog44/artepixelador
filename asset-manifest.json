@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/artepixelador/static/css/main.3dbc34cb.css",
+    "main.js": "/artepixelador/static/js/main.f2074b1c.js",
+    "index.html": "/artepixelador/index.html",
+    "main.3dbc34cb.css.map": "/artepixelador/static/css/main.3dbc34cb.css.map",
+    "main.f2074b1c.js.map": "/artepixelador/static/js/main.f2074b1c.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3dbc34cb.css",
+    "static/js/main.f2074b1c.js"
+  ]
+}
