@@ -1,0 +1,134 @@
+body, html, #root, .App {
+    height: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #2c2c2c;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.controls-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    height: 100%;
+    max-height: 800px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #1f1f1f;
+    border-radius: 15px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.pixelated-image-wrapper {
+    flex-grow: 1;
+    background-color: #333;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: #444;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.move-controls {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.input-number, .color-picker {
+    width: 60px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: #555;
+    color: white;
+    text-align: center;
+    margin: 5px 0;
+}
+
+.color-picker {
+    width: 40px;
+    height: 40px;
+}
+
+.button {
+    background-color: #ff6600;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 5px 0;
+}
+
+.button:hover {
+    background-color: #e65c00;
+}
+
+#output-canvas {
+    border: 2px solid #444;
+    cursor: crosshair;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.canvas-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .controls-container {
+        padding: 5px;
+        border-radius: 0;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .input-number, .color-picker, .button, .move-controls button {
+        width: 100%;
+        max-width: 200px;
+        margin: 5px auto;
+    }
+
+    .move-controls {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    #output-canvas {
+        width: 100%;
+        height: 100%;
+    }
+}
