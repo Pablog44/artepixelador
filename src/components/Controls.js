@@ -52,49 +52,57 @@ function Controls() {
                 />
             </div>
             <div className="controls">
-                <input type="file" id="image-upload" onChange={handleFileChange} style={{ display: 'none' }} />
-                <label htmlFor="image-upload" className="button">Cargar Imagen</label>
-                <label>Ancho: </label>
-                <input 
-                    type="number" 
-                    min="1" 
-                    max="200" 
-                    value={pixelWidth} 
-                    onChange={(e) => setPixelWidth(e.target.value)} 
-                    className="input-number"
-                />
-                <label>Altura: </label>
-                <input 
-                    type="number" 
-                    min="1" 
-                    max="200" 
-                    value={pixelHeight} 
-                    onChange={(e) => setPixelHeight(e.target.value)} 
-                    className="input-number"
-                />
-                <input 
-                    type="color" 
-                    value={selectedColor} 
-                    onChange={(e) => setSelectedColor(e.target.value)} 
-                    className="color-picker"
-                />
-                <button onClick={() => setSelectedColor('transparent')} className="button">Borrar</button>
-                <button onClick={handleZoomIn} className="button">Zoom In</button>
-                <button onClick={handleZoomOut} className="button">Zoom Out</button>
+                <div className="controls-group">
+                    <input type="file" id="image-upload" onChange={handleFileChange} style={{ display: 'none' }} />
+                    <label htmlFor="image-upload" className="button">Cargar Imagen</label>
+                    <button className="button" onClick={() => {
+                        const canvas = document.getElementById('output-canvas');
+                        const dataUrl = canvas.toDataURL('image/png', 1.0);  // Exporta a la máxima calidad
+                        const a = document.createElement('a');
+                        a.href = dataUrl;
+                        a.download = 'pixelated-image.png';
+                        a.click();
+                    }}>Descargar</button>
+                </div>
+                <div className="controls-group">
+                    <label>Ancho: </label>
+                    <input 
+                        type="number" 
+                        min="1" 
+                        max="200" 
+                        value={pixelWidth} 
+                        onChange={(e) => setPixelWidth(e.target.value)} 
+                        className="input-number"
+                    />
+                    <label>Altura: </label>
+                    <input 
+                        type="number" 
+                        min="1" 
+                        max="200" 
+                        value={pixelHeight} 
+                        onChange={(e) => setPixelHeight(e.target.value)} 
+                        className="input-number"
+                    />
+                </div>
+                <div className="controls-group">
+                    <input 
+                        type="color" 
+                        value={selectedColor} 
+                        onChange={(e) => setSelectedColor(e.target.value)} 
+                        className="color-picker"
+                    />
+                    <button onClick={() => setSelectedColor('transparent')} className="button">Borrar</button>
+                </div>
+                <div className="controls-group">
+                    <button onClick={handleZoomIn} className="button">Zoom In</button>
+                    <button onClick={handleZoomOut} className="button">Zoom Out</button>
+                </div>
                 <div className="move-controls">
                     <button onClick={() => handleMove('up')} className="button">↑</button>
                     <button onClick={() => handleMove('left')} className="button">←</button>
                     <button onClick={() => handleMove('down')} className="button">↓</button>
                     <button onClick={() => handleMove('right')} className="button">→</button>
                 </div>
-                <button className="button" onClick={() => {
-                    const canvas = document.getElementById('output-canvas');
-                    const dataUrl = canvas.toDataURL('image/png', 1.0);  // Exporta a la máxima calidad
-                    const a = document.createElement('a');
-                    a.href = dataUrl;
-                    a.download = 'pixelated-image.png';
-                    a.click();
-                }}>Descargar</button>
             </div>
         </div>
     );
