@@ -91,9 +91,7 @@ function PixelatedImage({ imageFile, pixelWidth, pixelHeight, selectedColor, sca
                 id="output-canvas"
                 style={{
                     transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
-                    transformOrigin: 'top left',
-                    width: '100%',
-                    height: '100%'
+                    transformOrigin: 'top left'
                 }}
             ></canvas>
         </div>

@@ -13,9 +13,7 @@ body, html, #root, .App {
 .controls-container {
     position: relative;
     width: 100%;
-    max-width: 1200px;
     height: 100%;
-    max-height: 800px;
     padding: 10px;
     box-sizing: border-box;
     display: flex;
@@ -35,6 +33,30 @@ body, html, #root, .App {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#output-canvas {
+    border: 2px solid #444;
+    cursor: crosshair;
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
 }
 
 .controls {
@@ -88,22 +110,6 @@ body, html, #root, .App {
     background-color: #e65c00;
 }
 
-#output-canvas {
-    border: 2px solid #444;
-    cursor: crosshair;
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-}
-
-.canvas-container {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
-}
-
 @media (max-width: 768px) {
     .controls-container {
         padding: 5px;
@@ -123,19 +129,10 @@ body, html, #root, .App {
         font-size: 12px;
     }
 
-    .input-number, .color-picker, .button, .move-controls {
+    .controls-group {
         width: 100%;
-        max-width: 100%;
         display: flex;
         justify-content: space-around;
-    }
-
-    .input-number {
-        width: 45px;
-    }
-
-    .move-controls {
-        flex-direction: row;
     }
 
     .button {
@@ -153,13 +150,9 @@ body, html, #root, .App {
     }
 
     #output-canvas {
-        width: 100%;
-        height: 100%;
-    }
-
-    .controls-group {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
     }
 }
