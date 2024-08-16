@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import PixelatedImage from './PixelatedImage';
+import Rejilla from './Rejilla';
+import { Link } from 'react-router-dom';
 
-function Controls() {
+function Controls({ page }) {
     const [selectedColor, setSelectedColor] = useState('#ff0000');
     const [pixelWidth, setPixelWidth] = useState(100);
     const [pixelHeight, setPixelHeight] = useState(100);
@@ -38,18 +40,38 @@ function Controls() {
         });
     };
 
-    return (
-        <div className="controls-container">
-            <div className="pixelated-image-wrapper">
-                <PixelatedImage 
-                    imageFile={imageFile} 
-                    pixelWidth={pixelWidth} 
-                    pixelHeight={pixelHeight} 
+    const renderChildComponent = () => {
+        if (page === 'rejilla') {
+            return (
+                <Rejilla
+                    imageFile={imageFile}
+                    pixelWidth={pixelWidth}
+                    pixelHeight={pixelHeight}
                     selectedColor={selectedColor}
                     scale={scale}
                     position={position}
                     setPosition={setPosition}
                 />
+            );
+        } else {
+            return (
+                <PixelatedImage
+                    imageFile={imageFile}
+                    pixelWidth={pixelWidth}
+                    pixelHeight={pixelHeight}
+                    selectedColor={selectedColor}
+                    scale={scale}
+                    position={position}
+                    setPosition={setPosition}
+                />
+            );
+        }
+    };
+
+    return (
+        <div className="controls-container">
+            <div className="pixelated-image-wrapper">
+                {renderChildComponent()}
             </div>
             <div className="controls">
                 <div className="controls-group">
@@ -66,29 +88,29 @@ function Controls() {
                 </div>
                 <div className="controls-group">
                     <label>Ancho: </label>
-                    <input 
-                        type="number" 
-                        min="1" 
-                        max="200" 
-                        value={pixelWidth} 
-                        onChange={(e) => setPixelWidth(e.target.value)} 
+                    <input
+                        type="number"
+                        min="1"
+                        max="200"
+                        value={pixelWidth}
+                        onChange={(e) => setPixelWidth(e.target.value)}
                         className="input-number"
                     />
                     <label>Altura: </label>
-                    <input 
-                        type="number" 
-                        min="1" 
-                        max="200" 
-                        value={pixelHeight} 
-                        onChange={(e) => setPixelHeight(e.target.value)} 
+                    <input
+                        type="number"
+                        min="1"
+                        max="200"
+                        value={pixelHeight}
+                        onChange={(e) => setPixelHeight(e.target.value)}
                         className="input-number"
                     />
                 </div>
                 <div className="controls-group">
-                    <input 
-                        type="color" 
-                        value={selectedColor} 
-                        onChange={(e) => setSelectedColor(e.target.value)} 
+                    <input
+                        type="color"
+                        value={selectedColor}
+                        onChange={(e) => setSelectedColor(e.target.value)}
                         className="color-picker"
                     />
                     <button onClick={() => setSelectedColor('transparent')} className="button">Borrar</button>
@@ -102,6 +124,13 @@ function Controls() {
                     <button onClick={() => handleMove('left')} className="button">←</button>
                     <button onClick={() => handleMove('down')} className="button">↓</button>
                     <button onClick={() => handleMove('right')} className="button">→</button>
+                </div>
+                <div className="controls-group">
+                    {page === 'rejilla' ? (
+                        <Link to="/" className="button">Volver a la Página Principal</Link>
+                    ) : (
+                        <Link to="/rejilla" className="button">Ir a la Vista con Rejilla</Link>
+                    )}
                 </div>
             </div>
         </div>
