@@ -127,9 +127,9 @@ function Controls({ page }) {
                 </div>
                 <div className="controls-group">
                     {page === 'rejilla' ? (
-                        <Link to="/" className="button">Volver a la Página Principal</Link>
+                        <Link to="/" className="button">Sin regilla</Link>
                     ) : (
-                        <Link to="/rejilla" className="button">Ir a la Vista con Rejilla</Link>
+                        <Link to="/rejilla" className="button">Rejilla</Link>
                     )}
                 </div>
             </div>
