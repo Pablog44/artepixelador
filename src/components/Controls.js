@@ -68,6 +68,7 @@ function Controls({ page }) {
         }
     };
 
+    const buttonStyle = { margin: '0 8px' };
     return (
         <div className="controls-container">
             <div className="pixelated-image-wrapper">
@@ -76,7 +77,7 @@ function Controls({ page }) {
             <div className="controls">
                 <div className="controls-group">
                     <input type="file" id="image-upload" onChange={handleFileChange} style={{ display: 'none' }} />
-                    <label htmlFor="image-upload" className="button">Cargar Imagen</label>
+                    <label htmlFor="image-upload" className="button" style={buttonStyle}>Cargar Imagen</label>
                     <button className="button" onClick={() => {
                         const canvas = document.getElementById('output-canvas');
                         const dataUrl = canvas.toDataURL('image/png', 1.0);  // Exporta a la máxima calidad
@@ -84,7 +85,7 @@ function Controls({ page }) {
                         a.href = dataUrl;
                         a.download = 'pixelated-image.png';
                         a.click();
-                    }}>Descargar</button>
+                    }} style={buttonStyle}>Descargar</button>
                 </div>
                 <div className="controls-group">
                     <label>Ancho: </label>
@@ -95,6 +96,7 @@ function Controls({ page }) {
                         value={pixelWidth}
                         onChange={(e) => setPixelWidth(e.target.value)}
                         className="input-number"
+                        style={buttonStyle}
                     />
                     <label>Altura: </label>
                     <input
@@ -104,6 +106,7 @@ function Controls({ page }) {
                         value={pixelHeight}
                         onChange={(e) => setPixelHeight(e.target.value)}
                         className="input-number"
+                        style={buttonStyle}
                     />
                 </div>
                 <div className="controls-group">
@@ -112,24 +115,25 @@ function Controls({ page }) {
                         value={selectedColor}
                         onChange={(e) => setSelectedColor(e.target.value)}
                         className="color-picker"
+                        style={buttonStyle}
                     />
-                    <button onClick={() => setSelectedColor('transparent')} className="button">Borrar</button>
+                    <button onClick={() => setSelectedColor('transparent')} className="button" style={buttonStyle}>Borrar</button>
                 </div>
                 <div className="controls-group">
-                    <button onClick={handleZoomIn} className="button">Zoom In</button>
-                    <button onClick={handleZoomOut} className="button">Zoom Out</button>
+                    <button onClick={handleZoomIn} className="button" style={buttonStyle}>Zoom In</button>
+                    <button onClick={handleZoomOut} className="button" style={buttonStyle}>Zoom Out</button>
                 </div>
                 <div className="move-controls">
-                    <button onClick={() => handleMove('up')} className="button">↑</button>
-                    <button onClick={() => handleMove('left')} className="button">←</button>
-                    <button onClick={() => handleMove('down')} className="button">↓</button>
-                    <button onClick={() => handleMove('right')} className="button">→</button>
+                    <button onClick={() => handleMove('up')} className="button" style={buttonStyle}>↑</button>
+                    <button onClick={() => handleMove('left')} className="button" style={buttonStyle}>←</button>
+                    <button onClick={() => handleMove('down')} className="button" style={buttonStyle}>↓</button>
+                    <button onClick={() => handleMove('right')} className="button" style={buttonStyle}>→</button>
                 </div>
                 <div className="controls-group">
                     {page === 'rejilla' ? (
-                        <Link to="/" className="button">Sin regilla</Link>
+                        <Link to="/" className="button" style={buttonStyle}>Sin regilla</Link>
                     ) : (
-                        <Link to="/rejilla" className="button">Rejilla</Link>
+                        <Link to="/rejilla" className="button" style={buttonStyle}>Rejilla</Link>
                     )}
                 </div>
             </div>
