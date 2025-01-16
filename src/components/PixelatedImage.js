@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ToolControls from './ToolControls';
 
-function PixelatedImage({ imageFile, pixelWidth, pixelHeight, selectedColor, scale, position, setPosition }) {
+function PixelatedImage({ 
+    imageFile, 
+    pixelWidth, 
+    pixelHeight, 
+    selectedColor, 
+    scale, 
+    position, 
+    setPosition 
+}) {
     const sourceCanvasRef = useRef(null);
     const outputCanvasRef = useRef(null);
     const [isPanning, setIsPanning] = useState(false);
@@ -23,6 +31,7 @@ function PixelatedImage({ imageFile, pixelWidth, pixelHeight, selectedColor, sca
 
                     sourceCanvas.width = pixelWidth;
                     sourceCanvas.height = pixelHeight;
+                    // Ajusta el tamaño de salida (ej. 10x), puedes cambiarlo si quieres otra escala.
                     outputCanvas.width = sourceCanvas.width * 10;
                     outputCanvas.height = sourceCanvas.height * 10;
 
@@ -135,7 +144,13 @@ function PixelatedImage({ imageFile, pixelWidth, pixelHeight, selectedColor, sca
 
     return (
         <div>
-            <ToolControls tool={tool} setTool={setTool} brushSize={brushSize} setBrushSize={setBrushSize} />
+            {/* Controles de herramienta (Pincel, Línea, Borrador) */}
+            <ToolControls 
+                tool={tool} 
+                setTool={setTool} 
+                brushSize={brushSize} 
+                setBrushSize={setBrushSize} 
+            />
             <div
                 className="canvas-container"
                 onMouseDown={handleMouseDown}
@@ -150,6 +165,7 @@ function PixelatedImage({ imageFile, pixelWidth, pixelHeight, selectedColor, sca
                     style={{
                         transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
                         transformOrigin: 'top left',
+                        border: '1px solid #ccc'
                     }}
                 ></canvas>
             </div>
