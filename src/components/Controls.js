@@ -135,7 +135,21 @@
         </div>
 
         <div className="controls">
+            
+        <div className="controls-group">
+            {page === 'rejilla' ? (
+                <Link to="/" className="button" style={buttonStyle}>
+                Sin rejilla
+                </Link>
+            ) : (
+                <Link to="/rejilla" className="button" style={buttonStyle}>
+                Con rejilla
+                </Link>
+            )}
+            </div>
+            
             <div className="controls-group">
+                
             <input
                 type="file"
                 id="image-upload"
@@ -224,18 +238,6 @@
             <button onClick={() => handleMove('right')} className="button" style={buttonStyle}>
                 →
             </button>
-            </div>
-
-            <div className="controls-group">
-            {page === 'rejilla' ? (
-                <Link to="/" className="button" style={buttonStyle}>
-                Sin rejilla
-                </Link>
-            ) : (
-                <Link to="/rejilla" className="button" style={buttonStyle}>
-                Con rejilla
-                </Link>
-            )}
             </div>
 
             {/* BOTONES PARA GIF */}
