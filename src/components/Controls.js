@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import PixelatedImage from './PixelatedImage';
-import Rejilla from './Rejilla';
 import { Link } from 'react-router-dom';
 import gifshot from 'gifshot';
+import PixelatedImage from './PixelatedImage';
+import Rejilla from './Rejilla';
 
 function Controls({ page }) {
   const [selectedColor, setSelectedColor] = useState('#ff0000');
@@ -11,14 +11,15 @@ function Controls({ page }) {
   const [imageFile, setImageFile] = useState(null);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  
-  // Estados para manejar los frames del GIF y la selección de un frame para editar
+
+  // Estados para manejar los frames del GIF y la selección de uno para editar
   const [frames, setFrames] = useState([]);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState(null);
 
+  // Al cargar una imagen se limpia la selección de frame
   const handleFileChange = (e) => {
     setImageFile(e.target.files[0]);
-    setSelectedFrameIndex(null); // Se limpia la selección si se carga una nueva imagen
+    setSelectedFrameIndex(null);
   };
 
   const handleZoomIn = () => {
@@ -46,20 +47,25 @@ function Controls({ page }) {
     });
   };
 
-  // Al presionar “Agregar Frame” se actualiza el frame seleccionado (si existe) o se añade uno nuevo
-  const handleAddFrame = () => {
+  // Función para agregar un nuevo frame (guarda el contenido actual del canvas)
+  const handleAgregarFrame = () => {
     const canvas = document.getElementById('output-canvas');
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png', 1.0);
-    if (selectedFrameIndex !== null) {
-      // Actualiza el frame ya existente
-      const newFrames = [...frames];
-      newFrames[selectedFrameIndex] = dataUrl;
-      setFrames(newFrames);
-    } else {
-      // Agrega un nuevo frame
-      setFrames([...frames, dataUrl]);
-    }
+    setFrames([...frames, dataUrl]);
+    // Opcional: seleccionar el frame recién agregado
+    setSelectedFrameIndex(frames.length);
+  };
+
+  // Función para actualizar el frame seleccionado
+  const handleActualizarFrame = () => {
+    if (selectedFrameIndex === null) return;
+    const canvas = document.getElementById('output-canvas');
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    const newFrames = [...frames];
+    newFrames[selectedFrameIndex] = dataUrl;
+    setFrames(newFrames);
   };
 
   // Función para descargar el GIF usando la librería gifshot
@@ -68,7 +74,7 @@ function Controls({ page }) {
     gifshot.createGIF(
       {
         images: frames,
-        gifWidth: pixelWidth * 10, // Debe coincidir con la escala del canvas
+        gifWidth: pixelWidth * 10, // Debe coincidir con el tamaño del canvas de salida
         gifHeight: pixelHeight * 10,
         numFrames: frames.length,
         frameDuration: 0.5, // segundos entre cada frame
@@ -251,10 +257,18 @@ function Controls({ page }) {
           </button>
         </div>
 
-        {/* Botones para guardar frame / actualizar y descargar el GIF */}
+        {/* Botones para agregar y actualizar frame, y para descargar el GIF */}
         <div className="controls-group">
-          <button className="button" onClick={handleAddFrame} style={buttonStyle}>
-            {selectedFrameIndex !== null ? 'Actualizar Frame' : 'Agregar Frame'}
+          <button className="button" onClick={handleAgregarFrame} style={buttonStyle}>
+            Agregar Frame
+          </button>
+          <button
+            className="button"
+            onClick={handleActualizarFrame}
+            style={buttonStyle}
+            disabled={selectedFrameIndex === null}
+          >
+            Actualizar Frame
           </button>
           <button className="button" onClick={handleDownloadGif} style={buttonStyle}>
             Descargar GIF

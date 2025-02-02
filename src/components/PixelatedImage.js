@@ -21,55 +21,60 @@ function PixelatedImage({
   const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
-    // Se determina la fuente de la imagen: si existe frameData se usa éste; si no, se utiliza imageFile
-    let imgSrc = null;
+    const sourceCanvas = sourceCanvasRef.current;
+    const outputCanvas = outputCanvasRef.current;
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const outputCtx = outputCanvas.getContext('2d');
+
+    // Desactivar el suavizado en ambos contextos
+    sourceCtx.imageSmoothingEnabled = false;
+    outputCtx.imageSmoothingEnabled = false;
+
     if (frameData) {
-      imgSrc = frameData;
-    } else if (imageFile) {
-      // imageFile es un objeto File, por lo que se lee con FileReader
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        imgSrc = e.target.result;
-        loadImage(imgSrc);
-      };
-      reader.readAsDataURL(imageFile);
-      return; // Se sale ya que se llama a loadImage dentro del reader
-    }
-    if (imgSrc) {
-      loadImage(imgSrc);
-    }
-    
-    function loadImage(src) {
+      // Si se está editando un frame, usar directamente el frame guardado
       const img = new Image();
       img.onload = function () {
-        const sourceCanvas = sourceCanvasRef.current;
-        const outputCanvas = outputCanvasRef.current;
-        const sourceCtx = sourceCanvas.getContext('2d');
-        const outputCtx = outputCanvas.getContext('2d');
-  
-        // Se configuran los tamaños de los canvas
-        sourceCanvas.width = pixelWidth;
-        sourceCanvas.height = pixelHeight;
+        // Establecer el tamaño de los canvas igual al tamaño del frame (ya pixelado)
+        sourceCanvas.width = pixelWidth * 10;
+        sourceCanvas.height = pixelHeight * 10;
         outputCanvas.width = pixelWidth * 10;
         outputCanvas.height = pixelHeight * 10;
-  
-        // Se limpian ambos canvas
-        sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
         outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-  
-        // Se dibuja la imagen en tamaño pixelado en el canvas oculto
-        sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
-  
-        // Se escala la imagen “pixelada” en el canvas de salida
-        for (let y = 0; y < pixelHeight; y++) {
-          for (let x = 0; x < pixelWidth; x++) {
-            const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
-            outputCtx.fillStyle = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
-            outputCtx.fillRect(x * 10, y * 10, 10, 10);
-          }
-        }
+        outputCtx.drawImage(img, 0, 0);
       };
-      img.src = src;
+      img.src = frameData;
+    } else if (imageFile) {
+      // Si se carga un archivo de imagen, crear el efecto pixelado
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imgSrc = e.target.result;
+        const img = new Image();
+        img.onload = function () {
+          // Configurar tamaños:
+          // Canvas oculto: tamaño original de la grilla (pixelWidth x pixelHeight)
+          // Canvas de salida: cada "píxel" se dibuja como un cuadrado de 10x10
+          sourceCanvas.width = pixelWidth;
+          sourceCanvas.height = pixelHeight;
+          outputCanvas.width = pixelWidth * 10;
+          outputCanvas.height = pixelHeight * 10;
+          sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+          outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+          // Dibujar la imagen escalada al tamaño de la grilla en el canvas oculto
+          sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
+
+          // Recorrer cada "píxel" y dibujarlo ampliado en el canvas de salida
+          for (let y = 0; y < pixelHeight; y++) {
+            for (let x = 0; x < pixelWidth; x++) {
+              const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
+              outputCtx.fillStyle = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
+              outputCtx.fillRect(x * 10, y * 10, 10, 10);
+            }
+          }
+        };
+        img.src = imgSrc;
+      };
+      reader.readAsDataURL(imageFile);
     }
   }, [imageFile, frameData, pixelWidth, pixelHeight]);
 
@@ -224,6 +229,11 @@ function PixelatedImage({
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
             transformOrigin: 'top left',
             border: '1px solid #ccc',
+            imageRendering: 'pixelated', // Fuerza la representación en estilo pixelado
+            /* Para mayor compatibilidad, puedes agregar:
+               msInterpolationMode: 'nearest-neighbor',
+               MozImageSmoothingEnabled: 'false',
+            */
           }}
         ></canvas>
       </div>
