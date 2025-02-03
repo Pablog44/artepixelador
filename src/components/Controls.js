@@ -5,7 +5,7 @@ import PixelatedImage from './PixelatedImage';
 import Rejilla from './Rejilla';
 
 function Controls({ page }) {
-  const [selectedColor, setSelectedColor] = useState('#ff0000');
+  const [selectedColor, setSelectedColor] = useState('#e69007');
   const [pixelWidth, setPixelWidth] = useState(100);
   const [pixelHeight, setPixelHeight] = useState(100);
   const [imageFile, setImageFile] = useState(null);
@@ -144,7 +144,7 @@ function Controls({ page }) {
                 style={{
                   width: '50px',
                   height: '50px',
-                  border: selectedFrameIndex === index ? '2px solid blue' : '1px solid #ccc',
+                  border: selectedFrameIndex === index ? '2px solid orange' : '1px solid #ccc',
                   cursor: 'pointer',
                 }}
               />
