@@ -20,55 +20,63 @@ function PixelatedImage({
   const [lineStart, setLineStart] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
+  // Calcula el tamaño base de cada "píxel" para que el canvas ocupe ~90% de la ventana.
+  const basePixelSize = Math.floor(
+    Math.min(
+      window.innerWidth * 0.9 / pixelWidth,
+      window.innerHeight * 0.9 / pixelHeight
+    )
+  );
+
   useEffect(() => {
     const sourceCanvas = sourceCanvasRef.current;
     const outputCanvas = outputCanvasRef.current;
     const sourceCtx = sourceCanvas.getContext('2d');
     const outputCtx = outputCanvas.getContext('2d');
 
-    // Desactivar el suavizado en ambos contextos
+    // Desactivar el suavizado para lograr un efecto pixelado
     sourceCtx.imageSmoothingEnabled = false;
     outputCtx.imageSmoothingEnabled = false;
 
     if (frameData) {
-      // Si se está editando un frame, usar directamente el frame guardado
+      // Si se está editando un frame guardado, se asume que ya es una imagen pixelada.
+      // Se asigna la resolución del canvas en función de la grilla.
+      sourceCanvas.width = pixelWidth * basePixelSize;
+      sourceCanvas.height = pixelHeight * basePixelSize;
+      outputCanvas.width = pixelWidth * basePixelSize;
+      outputCanvas.height = pixelHeight * basePixelSize;
+      outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+      // Se dibuja la imagen escalándola al tamaño del canvas.
       const img = new Image();
       img.onload = function () {
-        // Establecer el tamaño de los canvas igual al tamaño del frame (ya pixelado)
-        sourceCanvas.width = pixelWidth * 10;
-        sourceCanvas.height = pixelHeight * 10;
-        outputCanvas.width = pixelWidth * 10;
-        outputCanvas.height = pixelHeight * 10;
-        outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-        outputCtx.drawImage(img, 0, 0);
+        outputCtx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
       };
       img.src = frameData;
     } else if (imageFile) {
-      // Si se carga un archivo de imagen, crear el efecto pixelado
+      // Al cargar una imagen se crea el efecto pixelado.
       const reader = new FileReader();
       reader.onload = function (e) {
         const imgSrc = e.target.result;
         const img = new Image();
         img.onload = function () {
-          // Configurar tamaños:
-          // Canvas oculto: tamaño original de la grilla (pixelWidth x pixelHeight)
-          // Canvas de salida: cada "píxel" se dibuja como un cuadrado de 10x10
+          // Canvas fuente: se reduce la imagen a la resolución de la grilla.
           sourceCanvas.width = pixelWidth;
           sourceCanvas.height = pixelHeight;
-          outputCanvas.width = pixelWidth * 10;
-          outputCanvas.height = pixelHeight * 10;
+          // Canvas de salida: se escala para ocupar el área de trabajo.
+          outputCanvas.width = pixelWidth * basePixelSize;
+          outputCanvas.height = pixelHeight * basePixelSize;
           sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
           outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
 
-          // Dibujar la imagen escalada al tamaño de la grilla en el canvas oculto
+          // Dibujar la imagen reducida en el canvas fuente.
           sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
 
-          // Recorrer cada "píxel" y dibujarlo ampliado en el canvas de salida
+          // Recorrer cada "píxel" y dibujarlo ampliado en el canvas de salida.
           for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
               const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
               outputCtx.fillStyle = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
-              outputCtx.fillRect(x * 10, y * 10, 10, 10);
+              outputCtx.fillRect(x * basePixelSize, y * basePixelSize, basePixelSize, basePixelSize);
             }
           }
         };
@@ -76,39 +84,40 @@ function PixelatedImage({
       };
       reader.readAsDataURL(imageFile);
     }
-  }, [imageFile, frameData, pixelWidth, pixelHeight]);
+  }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize]);
 
   // Función para dibujar un cuadrado (píxel) en el canvas
   const drawSquare = (ctx, x, y, color, size) => {
     ctx.fillStyle = color;
-    ctx.fillRect(x * 10, y * 10, 10 * size, 10 * size);
+    ctx.fillRect(x * basePixelSize, y * basePixelSize, basePixelSize * size, basePixelSize * size);
   };
 
   // Función para borrar un cuadrado (píxel)
   const clearSquare = (ctx, x, y, size) => {
-    ctx.clearRect(x * 10, y * 10, 10 * size, 10 * size);
+    ctx.clearRect(x * basePixelSize, y * basePixelSize, basePixelSize * size, basePixelSize * size);
   };
 
+  // Se obtienen las coordenadas de la grilla a partir de la posición en pantalla
   const getCanvasCoordinates = (clientX, clientY) => {
     const rect = outputCanvasRef.current.getBoundingClientRect();
     const scaleX = outputCanvasRef.current.width / rect.width;
     const scaleY = outputCanvasRef.current.height / rect.height;
-    const x = Math.floor(((clientX - rect.left) * scaleX) / 10);
-    const y = Math.floor(((clientY - rect.top) * scaleY) / 10);
+    const x = Math.floor(((clientX - rect.left) * scaleX) / basePixelSize);
+    const y = Math.floor(((clientY - rect.top) * scaleY) / basePixelSize);
     return { x, y };
   };
 
   const handleMouseDown = (e) => {
     if (e.ctrlKey) {
-      // Inicia pan (arrastre) cuando se presiona Ctrl
+      // Inicia el pan (arrastre) al presionar Ctrl
       setIsPanning(true);
       setStartCoords({ x: e.clientX - position.x, y: e.clientY - position.y });
     } else if (tool === 'line') {
-      // Inicia trazo de línea
+      // Inicia el trazo de línea
       const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
       setLineStart({ x, y });
     } else {
-      // Inicia dibujo (pincel o borrador)
+      // Inicia el dibujo (pincel o borrador)
       setIsDrawing(true);
       paintOrErase(e.clientX, e.clientY, tool);
     }
@@ -210,9 +219,17 @@ function PixelatedImage({
         brushSize={brushSize}
         setBrushSize={setBrushSize}
       />
+      {/* Contenedor para el canvas: ocupa toda la ventana y centra el área de trabajo */}
       <div
         className="canvas-container"
-        style={{ userSelect: 'none' }}
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          userSelect: 'none'
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -221,19 +238,20 @@ function PixelatedImage({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* Canvas oculto para procesar la imagen fuente */}
         <canvas ref={sourceCanvasRef} style={{ display: 'none' }}></canvas>
+        {/* Canvas de salida con la imagen pixelada */}
         <canvas
           ref={outputCanvasRef}
           id="output-canvas"
           style={{
+            /* El ancho y alto del canvas se basan en la grilla y en basePixelSize */
+            width: `${pixelWidth * basePixelSize}px`,
+            height: `${pixelHeight * basePixelSize}px`,
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
             transformOrigin: 'top left',
             border: '1px solid #ccc',
-            imageRendering: 'pixelated', // Fuerza la representación en estilo pixelado
-            /* Para mayor compatibilidad, puedes agregar:
-               msInterpolationMode: 'nearest-neighbor',
-               MozImageSmoothingEnabled: 'false',
-            */
+            imageRendering: 'pixelated'
           }}
         ></canvas>
       </div>

@@ -68,7 +68,7 @@ function Controls({ page }) {
     setFrames(newFrames);
   };
 
-  // Nueva función para eliminar el frame seleccionado
+  // Función para eliminar el frame seleccionado
   const handleEliminarFrame = () => {
     if (selectedFrameIndex === null) return;
     const newFrames = frames.filter((frame, index) => index !== selectedFrameIndex);
@@ -87,7 +87,7 @@ function Controls({ page }) {
     gifshot.createGIF(
       {
         images: frames,
-        gifWidth: pixelWidth * 10, // Debe coincidir con el tamaño del canvas de salida
+        gifWidth: pixelWidth * 10, // Nota: este valor no afecta al área de trabajo, solo a la resolución interna del GIF
         gifHeight: pixelHeight * 10,
         numFrames: frames.length,
         frameDuration: 0.5, // segundos entre cada frame
@@ -140,6 +140,7 @@ function Controls({ page }) {
 
   return (
     <div className="controls-container">
+      {/* Aquí se renderiza el área de trabajo */}
       <div className="pixelated-image-wrapper">
         {renderChildComponent()}
       </div>
