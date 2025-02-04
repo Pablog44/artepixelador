@@ -3,6 +3,7 @@ import ToolControls from './ToolControls';
 
 function Rejilla({ 
   imageFile, 
+  frameData, 
   pixelWidth, 
   pixelHeight, 
   selectedColor, 
@@ -12,50 +13,81 @@ function Rejilla({
 }) {
   const sourceCanvasRef = useRef(null);
   const outputCanvasRef = useRef(null);
+  
+  // Estado para manejar el panning (arrastre) del canvas
   const [isPanning, setIsPanning] = useState(false);
   const [startCoords, setStartCoords] = useState({ x: 0, y: 0 });
-
-  // Estados para la herramienta y el tamaño del pincel
-  const [tool, setTool] = useState('brush'); // Puede ser 'brush', 'eraser', etc.
+  
+  // Estados para la herramienta (pincel o borrador) y el tamaño del pincel
+  const [tool, setTool] = useState('brush'); // 'brush' o 'eraser'
   const [brushSize, setBrushSize] = useState(1);
-
-  // Calcula el tamaño base de cada "píxel" para que el canvas ocupe aproximadamente el 90% de la ventana
+  
+  // Calcula el tamaño base de cada “píxel” para que el canvas ocupe aproximadamente el 90% de la ventana.
   const basePixelSize = Math.floor(
     Math.min(
       window.innerWidth * 0.9 / pixelWidth,
       window.innerHeight * 0.9 / pixelHeight
     )
   );
-
+  
+  // Efecto para cargar la imagen base: si existe frameData se carga ese frame,
+  // de lo contrario se usa imageFile.
   useEffect(() => {
-    if (imageFile) {
+    const sourceCanvas = sourceCanvasRef.current;
+    const outputCanvas = outputCanvasRef.current;
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const outputCtx = outputCanvas.getContext('2d');
+    outputCtx.imageSmoothingEnabled = false;
+    
+    if (frameData) {
+      // Si se está editando un frame guardado, se asume que ya es una imagen pixelada.
+      // Se configura el canvas con la resolución completa.
+      sourceCanvas.width = pixelWidth * basePixelSize;
+      sourceCanvas.height = pixelHeight * basePixelSize;
+      outputCanvas.width = pixelWidth * basePixelSize;
+      outputCanvas.height = pixelHeight * basePixelSize;
+      outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+  
+      const img = new Image();
+      img.onload = () => {
+        // Se dibuja la imagen escalada al tamaño del canvas.
+        outputCtx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
+        // Se dibuja la cuadrícula sobre la imagen.
+        for (let y = 0; y < pixelHeight; y++) {
+          for (let x = 0; x < pixelWidth; x++) {
+            outputCtx.strokeStyle = 'black';
+            outputCtx.lineWidth = 1;
+            outputCtx.strokeRect(
+              x * basePixelSize + 0.5,
+              y * basePixelSize + 0.5,
+              basePixelSize - 1,
+              basePixelSize - 1
+            );
+          }
+        }
+      };
+      img.src = frameData;
+    } else if (imageFile) {
+      // Al cargar una imagen se crea el efecto pixelado.
       const reader = new FileReader();
-      reader.onload = function (e) {
+      reader.onload = function(e) {
         const img = new Image();
-        img.onload = function () {
-          const sourceCanvas = sourceCanvasRef.current;
-          const outputCanvas = outputCanvasRef.current;
-          const sourceCtx = sourceCanvas.getContext('2d');
-          const outputCtx = outputCanvas.getContext('2d');
-
-          // Configuramos los canvas:
-          // - El canvas fuente se ajusta a la resolución de la grilla.
-          // - El canvas de salida se escala usando basePixelSize.
+        img.onload = () => {
+          // Canvas fuente: se reduce la imagen a la resolución de la grilla.
           sourceCanvas.width = pixelWidth;
           sourceCanvas.height = pixelHeight;
+          // Canvas de salida: se escala para ocupar el área de trabajo.
           outputCanvas.width = pixelWidth * basePixelSize;
           outputCanvas.height = pixelHeight * basePixelSize;
-
-          // Desactivar el suavizado para lograr el efecto pixelado
           sourceCtx.imageSmoothingEnabled = false;
           outputCtx.imageSmoothingEnabled = false;
-
-          // Dibujar la imagen en el canvas fuente reducida a la resolución de la grilla
-          sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
+          sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
           outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-
-          // Recorrer cada "píxel" y dibujarlo en el canvas de salida
-          // Se resta 1 a basePixelSize para dejar ver la cuadrícula (línea de separación)
+  
+          // Se dibuja la imagen reducida en el canvas fuente.
+          sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
+  
+          // Recorremos cada “píxel” y lo dibujamos ampliado en el canvas de salida.
           for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
               const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
@@ -66,8 +98,7 @@ function Rejilla({
                 basePixelSize - 1,
                 basePixelSize - 1
               );
-
-              // Dibujar la cuadrícula
+              // Dibujar la cuadrícula.
               outputCtx.strokeStyle = 'black';
               outputCtx.lineWidth = 1;
               outputCtx.strokeRect(
@@ -83,9 +114,9 @@ function Rejilla({
       };
       reader.readAsDataURL(imageFile);
     }
-  }, [imageFile, pixelWidth, pixelHeight, basePixelSize]);
-
-  // Funciones para dibujar y borrar utilizando basePixelSize
+  }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize]);
+  
+  // Función para dibujar un “cuadrado” (píxel) en el canvas.
   const drawSquare = (ctx, x, y, color, size = 1) => {
     ctx.fillStyle = color;
     ctx.fillRect(
@@ -95,7 +126,8 @@ function Rejilla({
       basePixelSize * size - 1
     );
   };
-
+  
+  // Función para borrar un “cuadrado” (píxel) en el canvas.
   const clearSquare = (ctx, x, y, size = 1) => {
     ctx.clearRect(
       x * basePixelSize,
@@ -104,8 +136,8 @@ function Rejilla({
       basePixelSize * size - 1
     );
   };
-
-  // Convierte las coordenadas de pantalla a coordenadas de la grilla
+  
+  // Convierte las coordenadas de pantalla a coordenadas de la grilla.
   const getCanvasCoordinates = (clientX, clientY) => {
     const rect = outputCanvasRef.current.getBoundingClientRect();
     const scaleX = outputCanvasRef.current.width / rect.width;
@@ -114,54 +146,25 @@ function Rejilla({
     const y = Math.floor(((clientY - rect.top) * scaleY) / basePixelSize);
     return { x, y };
   };
-
-  // Manejo de eventos del mouse
-  const handleMouseDown = (e) => {
-    if (e.ctrlKey) {
-      // Inicia el pan (arrastre) si se mantiene la tecla Ctrl
-      setIsPanning(true);
-      setStartCoords({ x: e.clientX - position.x, y: e.clientY - position.y });
-    } else {
-      handleCanvasClick(e);
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (isPanning) {
-      setPosition({
-        x: e.clientX - startCoords.x,
-        y: e.clientY - startCoords.y,
-      });
-    } else if (e.buttons) {
-      // Si se mantiene presionado el botón del mouse, continúa pintando o borrando
-      handleCanvasClick(e);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsPanning(false);
-  };
-
-  // Función para procesar el clic (o arrastre) sobre el canvas
+  
+  // Función que procesa el clic (o arrastre) sobre el canvas para pintar o borrar.
   const handleCanvasClick = (e) => {
     if (e.ctrlKey || isPanning) return;
-
     const { x: gridX, y: gridY } = getCanvasCoordinates(e.clientX, e.clientY);
     const ctx = outputCanvasRef.current.getContext('2d');
-
-    // Recorre la cantidad de píxeles según el tamaño del pincel
+  
     for (let i = 0; i < brushSize; i++) {
       for (let j = 0; j < brushSize; j++) {
         const px = gridX + i;
         const py = gridY + j;
-
+  
         if (tool === 'eraser') {
           clearSquare(ctx, px, py);
         } else if (tool === 'brush') {
           drawSquare(ctx, px, py, selectedColor);
         }
-
-        // Redibujar la cuadrícula en el área modificada
+  
+        // Redibuja la cuadrícula en el área modificada.
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 1;
         ctx.strokeRect(
@@ -173,14 +176,38 @@ function Rejilla({
       }
     }
   };
-
-  // Soporte para eventos táctiles
+  
+  // Eventos del mouse y táctiles para panning y dibujo.
+  const handleMouseDown = (e) => {
+    if (e.ctrlKey) {
+      setIsPanning(true);
+      setStartCoords({ x: e.clientX - position.x, y: e.clientY - position.y });
+    } else {
+      handleCanvasClick(e);
+    }
+  };
+  
+  const handleMouseMove = (e) => {
+    if (isPanning) {
+      setPosition({
+        x: e.clientX - startCoords.x,
+        y: e.clientY - startCoords.y,
+      });
+    } else if (e.buttons) {
+      handleCanvasClick(e);
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+  
   const handleTouchStart = (e) => {
     e.preventDefault();
     const touch = e.touches[0];
     handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, ctrlKey: e.ctrlKey });
   };
-
+  
   const handleTouchMove = (e) => {
     e.preventDefault();
     if (e.touches.length) {
@@ -188,22 +215,23 @@ function Rejilla({
       handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, ctrlKey: e.ctrlKey });
     }
   };
-
+  
   const handleTouchEnd = (e) => {
     e.preventDefault();
     setIsPanning(false);
   };
-
+  
   return (
     <div>
-      {/* Controles para seleccionar herramienta y tamaño del pincel */}
+      {/* Controles para seleccionar herramienta y tamaño de pincel */}
       <ToolControls 
         tool={tool} 
         setTool={setTool} 
         brushSize={brushSize} 
         setBrushSize={setBrushSize} 
       />
-      
+  
+      {/* Contenedor del canvas: ocupa toda la ventana y centra el área de trabajo */}
       <div
         className="canvas-container"
         onMouseDown={handleMouseDown}
@@ -222,10 +250,9 @@ function Rejilla({
           userSelect: 'none'
         }}
       >
-        {/* Canvas oculto para el procesamiento de la imagen fuente */}
+        {/* Canvas oculto para procesamiento de la imagen fuente */}
         <canvas ref={sourceCanvasRef} style={{ display: 'none' }}></canvas>
-
-        {/* Canvas de salida con la imagen pixelada y la cuadrícula */}
+        {/* Canvas de salida con imagen pixelada y cuadrícula */}
         <canvas
           ref={outputCanvasRef}
           id="output-canvas"

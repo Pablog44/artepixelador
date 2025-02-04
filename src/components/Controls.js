@@ -16,6 +16,11 @@ function Controls({ page }) {
   const [frames, setFrames] = useState([]);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState(null);
 
+  // Nuevos estados para control de herramienta, tamaño y forma del pincel
+  const [tool, setTool] = useState('brush');
+  const [brushSize, setBrushSize] = useState(1);
+  const [brushShape, setBrushShape] = useState('square'); // 'square' o 'circle'
+
   // Al cargar una imagen se limpia la selección de frame
   const handleFileChange = (e) => {
     setImageFile(e.target.files[0]);
@@ -53,7 +58,6 @@ function Controls({ page }) {
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png', 1.0);
     setFrames([...frames, dataUrl]);
-    // Opcional: seleccionar el frame recién agregado
     setSelectedFrameIndex(frames.length);
   };
 
@@ -71,9 +75,8 @@ function Controls({ page }) {
   // Función para eliminar el frame seleccionado
   const handleEliminarFrame = () => {
     if (selectedFrameIndex === null) return;
-    const newFrames = frames.filter((frame, index) => index !== selectedFrameIndex);
+    const newFrames = frames.filter((_, index) => index !== selectedFrameIndex);
     setFrames(newFrames);
-    // Ajustar el índice seleccionado después de eliminar
     if (newFrames.length === 0) {
       setSelectedFrameIndex(null);
     } else if (selectedFrameIndex >= newFrames.length) {
@@ -81,16 +84,18 @@ function Controls({ page }) {
     }
   };
 
-  // Función para descargar el GIF usando la librería gifshot
+  // Función para descargar el GIF usando gifshot
   const handleDownloadGif = () => {
     if (frames.length === 0) return;
     gifshot.createGIF(
       {
         images: frames,
-        gifWidth: pixelWidth * 10, // Nota: este valor no afecta al área de trabajo, solo a la resolución interna del GIF
+        gifWidth: pixelWidth * 10, // este valor es para la resolución interna del GIF
         gifHeight: pixelHeight * 10,
         numFrames: frames.length,
         frameDuration: 0.5, // segundos entre cada frame
+        // Nota: El formato GIF sólo permite un color transparente, por lo que las áreas borradas (transparentes)
+        // se conservarán según la paleta del GIF.
       },
       function (obj) {
         if (!obj.error) {
@@ -118,6 +123,9 @@ function Controls({ page }) {
           scale={scale}
           position={position}
           setPosition={setPosition}
+          tool={tool}
+          brushSize={brushSize}
+          brushShape={brushShape}
         />
       );
     } else {
@@ -131,6 +139,9 @@ function Controls({ page }) {
           scale={scale}
           position={position}
           setPosition={setPosition}
+          tool={tool}
+          brushSize={brushSize}
+          brushShape={brushShape}
         />
       );
     }
@@ -138,12 +149,42 @@ function Controls({ page }) {
 
   const buttonStyle = { margin: '0 8px' };
 
+  // Subcomponente para los controles de herramienta, tamaño y forma
+  const ToolControls = ({ tool, setTool, brushSize, setBrushSize, brushShape, setBrushShape }) => {
+    return (
+      <div className="tool-controls">
+        <label>
+          Modo:
+          <select value={tool} onChange={(e) => setTool(e.target.value)}>
+            <option value="brush">Pincel</option>
+            <option value="line">Línea</option>
+            <option value="eraser">Borrador</option>
+          </select>
+        </label>
+        <label>
+          Tamaño:
+          <select value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))}>
+            <option value={1}>1x1</option>
+            <option value={2}>2x2</option>
+            <option value={3}>3x3</option>
+            <option value={4}>4x4</option>
+          </select>
+        </label>
+        <label>
+          Forma:
+          <select value={brushShape} onChange={(e) => setBrushShape(e.target.value)}>
+            <option value="square">Cuadrado</option>
+            <option value="circle">Círculo</option>
+          </select>
+        </label>
+      </div>
+    );
+  };
+
   return (
     <div className="controls-container">
-      {/* Aquí se renderiza el área de trabajo */}
-      <div className="pixelated-image-wrapper">
-        {renderChildComponent()}
-      </div>
+      {/* Área de trabajo */}
+      <div className="pixelated-image-wrapper">{renderChildComponent()}</div>
 
       {/* Previsualización de frames */}
       <div className="frames-preview" style={{ margin: '10px 0' }}>
@@ -159,7 +200,7 @@ function Controls({ page }) {
                   width: '50px',
                   height: '50px',
                   border: selectedFrameIndex === index ? '2px solid orange' : '1px solid #ccc',
-                  cursor: 'pointer',
+                  cursor: 'pointer'
                 }}
               />
             ))}
@@ -179,7 +220,7 @@ function Controls({ page }) {
             </Link>
           )}
         </div>
-        
+
         <div className="controls-group">
           <input
             type="file"
@@ -238,13 +279,7 @@ function Controls({ page }) {
             className="color-picker"
             style={buttonStyle}
           />
-          <button
-            onClick={() => setSelectedColor('transparent')}
-            className="button"
-            style={buttonStyle}
-          >
-            Borrar
-          </button>
+
         </div>
 
         <div className="controls-group">
@@ -271,7 +306,6 @@ function Controls({ page }) {
           </button>
         </div>
 
-        {/* Botones para agregar, actualizar, eliminar frame y para descargar el GIF */}
         <div className="controls-group">
           <button className="button" onClick={handleAgregarFrame} style={buttonStyle}>
             Agregar Frame
@@ -296,6 +330,16 @@ function Controls({ page }) {
             Descargar GIF
           </button>
         </div>
+
+        {/* Controles de herramienta, tamaño y forma */}
+        <ToolControls
+          tool={tool}
+          setTool={setTool}
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
+          brushShape={brushShape}
+          setBrushShape={setBrushShape}
+        />
       </div>
     </div>
   );
