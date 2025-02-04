@@ -68,6 +68,19 @@ function Controls({ page }) {
     setFrames(newFrames);
   };
 
+  // Nueva función para eliminar el frame seleccionado
+  const handleEliminarFrame = () => {
+    if (selectedFrameIndex === null) return;
+    const newFrames = frames.filter((frame, index) => index !== selectedFrameIndex);
+    setFrames(newFrames);
+    // Ajustar el índice seleccionado después de eliminar
+    if (newFrames.length === 0) {
+      setSelectedFrameIndex(null);
+    } else if (selectedFrameIndex >= newFrames.length) {
+      setSelectedFrameIndex(newFrames.length - 1);
+    }
+  };
+
   // Función para descargar el GIF usando la librería gifshot
   const handleDownloadGif = () => {
     if (frames.length === 0) return;
@@ -257,7 +270,7 @@ function Controls({ page }) {
           </button>
         </div>
 
-        {/* Botones para agregar y actualizar frame, y para descargar el GIF */}
+        {/* Botones para agregar, actualizar, eliminar frame y para descargar el GIF */}
         <div className="controls-group">
           <button className="button" onClick={handleAgregarFrame} style={buttonStyle}>
             Agregar Frame
@@ -269,6 +282,14 @@ function Controls({ page }) {
             disabled={selectedFrameIndex === null}
           >
             Actualizar Frame
+          </button>
+          <button
+            className="button"
+            onClick={handleEliminarFrame}
+            style={buttonStyle}
+            disabled={selectedFrameIndex === null}
+          >
+            Eliminar Frame
           </button>
           <button className="button" onClick={handleDownloadGif} style={buttonStyle}>
             Descargar GIF
