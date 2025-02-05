@@ -16,7 +16,7 @@ function Controls({ page }) {
   const [frames, setFrames] = useState([]);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState(null);
 
-  // Nuevos estados para control de herramienta, tamaño y forma del pincel
+  // Estados para control de herramienta, tamaño y forma del pincel
   const [tool, setTool] = useState('brush');
   const [brushSize, setBrushSize] = useState(1);
   const [brushShape, setBrushShape] = useState('square'); // 'square' o 'circle'
@@ -90,12 +90,10 @@ function Controls({ page }) {
     gifshot.createGIF(
       {
         images: frames,
-        gifWidth: pixelWidth * 10, // este valor es para la resolución interna del GIF
+        gifWidth: pixelWidth * 10,
         gifHeight: pixelHeight * 10,
         numFrames: frames.length,
-        frameDuration: 0.5, // segundos entre cada frame
-        // Nota: El formato GIF sólo permite un color transparente, por lo que las áreas borradas (transparentes)
-        // se conservarán según la paleta del GIF.
+        frameDuration: 0.5,
       },
       function (obj) {
         if (!obj.error) {
@@ -117,6 +115,7 @@ function Controls({ page }) {
       return (
         <Rejilla
           imageFile={imageFile}
+          frameData={selectedFrameIndex !== null ? frames[selectedFrameIndex] : null}  // ¡Se pasa frameData!
           pixelWidth={pixelWidth}
           pixelHeight={pixelHeight}
           selectedColor={selectedColor}
@@ -279,7 +278,6 @@ function Controls({ page }) {
             className="color-picker"
             style={buttonStyle}
           />
-
         </div>
 
         <div className="controls-group">

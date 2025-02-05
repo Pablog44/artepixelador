@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ToolControls from './ToolControls';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 function Rejilla({ 
   imageFile, 
@@ -9,7 +8,10 @@ function Rejilla({
   selectedColor, 
   scale, 
   position, 
-  setPosition 
+  setPosition,
+  tool,
+  brushSize,
+  brushShape
 }) {
   const sourceCanvasRef = useRef(null);
   const outputCanvasRef = useRef(null);
@@ -18,17 +20,65 @@ function Rejilla({
   const [isPanning, setIsPanning] = useState(false);
   const [startCoords, setStartCoords] = useState({ x: 0, y: 0 });
   
-  // Estados para la herramienta (pincel o borrador) y el tamaño del pincel
-  const [tool, setTool] = useState('brush'); // 'brush' o 'eraser'
-  const [brushSize, setBrushSize] = useState(1);
-  
   // Calcula el tamaño base de cada “píxel” para que el canvas ocupe aproximadamente el 90% de la ventana.
   const basePixelSize = Math.floor(
     Math.min(
-      window.innerWidth * 0.9 / pixelWidth,
-      window.innerHeight * 0.9 / pixelHeight
+      (window.innerWidth * 0.9) / pixelWidth,
+      (window.innerHeight * 0.9) / pixelHeight
     )
   );
+  
+  // Envolvemos drawPixel en useCallback para poder incluirlo en el array de dependencias
+  const drawPixel = useCallback((ctx, x, y, color, size = 1, shape = 'square') => {
+    ctx.fillStyle = color;
+    if (shape === 'circle') {
+      ctx.beginPath();
+      const centerX = x * basePixelSize + (basePixelSize * size) / 2;
+      const centerY = y * basePixelSize + (basePixelSize * size) / 2;
+      const radius = (basePixelSize * size) / 2;
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.fill();
+    } else {
+      ctx.fillRect(
+        x * basePixelSize,
+        y * basePixelSize,
+        basePixelSize * size - 1,
+        basePixelSize * size - 1
+      );
+    }
+  }, [basePixelSize]);
+  
+  // Función para borrar un “píxel” con soporte para forma
+  const clearPixel = (ctx, x, y, size = 1, shape = 'square') => {
+    if (shape === 'circle') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      const centerX = x * basePixelSize + (basePixelSize * size) / 2;
+      const centerY = y * basePixelSize + (basePixelSize * size) / 2;
+      const radius = (basePixelSize * size) / 2;
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.clearRect(
+        x * basePixelSize,
+        y * basePixelSize,
+        basePixelSize * size - 1,
+        basePixelSize * size - 1
+      );
+    }
+  };
+  
+  // Convierte las coordenadas de pantalla a coordenadas de la grilla.
+  const getCanvasCoordinates = (clientX, clientY) => {
+    const rect = outputCanvasRef.current.getBoundingClientRect();
+    const scaleX = outputCanvasRef.current.width / rect.width;
+    const scaleY = outputCanvasRef.current.height / rect.height;
+    const x = Math.floor(((clientX - rect.left) * scaleX) / basePixelSize);
+    const y = Math.floor(((clientY - rect.top) * scaleY) / basePixelSize);
+    return { x, y };
+  };
   
   // Efecto para cargar la imagen base: si existe frameData se carga ese frame,
   // de lo contrario se usa imageFile.
@@ -41,7 +91,6 @@ function Rejilla({
     
     if (frameData) {
       // Si se está editando un frame guardado, se asume que ya es una imagen pixelada.
-      // Se configura el canvas con la resolución completa.
       sourceCanvas.width = pixelWidth * basePixelSize;
       sourceCanvas.height = pixelHeight * basePixelSize;
       outputCanvas.width = pixelWidth * basePixelSize;
@@ -50,9 +99,8 @@ function Rejilla({
   
       const img = new Image();
       img.onload = () => {
-        // Se dibuja la imagen escalada al tamaño del canvas.
         outputCtx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
-        // Se dibuja la cuadrícula sobre la imagen.
+        // Dibujar la cuadrícula sobre la imagen.
         for (let y = 0; y < pixelHeight; y++) {
           for (let x = 0; x < pixelWidth; x++) {
             outputCtx.strokeStyle = 'black';
@@ -91,13 +139,8 @@ function Rejilla({
           for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
               const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
-              outputCtx.fillStyle = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
-              outputCtx.fillRect(
-                x * basePixelSize,
-                y * basePixelSize,
-                basePixelSize - 1,
-                basePixelSize - 1
-              );
+              const color = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
+              drawPixel(outputCtx, x, y, color, 1, brushShape);
               // Dibujar la cuadrícula.
               outputCtx.strokeStyle = 'black';
               outputCtx.lineWidth = 1;
@@ -114,38 +157,7 @@ function Rejilla({
       };
       reader.readAsDataURL(imageFile);
     }
-  }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize]);
-  
-  // Función para dibujar un “cuadrado” (píxel) en el canvas.
-  const drawSquare = (ctx, x, y, color, size = 1) => {
-    ctx.fillStyle = color;
-    ctx.fillRect(
-      x * basePixelSize,
-      y * basePixelSize,
-      basePixelSize * size - 1,
-      basePixelSize * size - 1
-    );
-  };
-  
-  // Función para borrar un “cuadrado” (píxel) en el canvas.
-  const clearSquare = (ctx, x, y, size = 1) => {
-    ctx.clearRect(
-      x * basePixelSize,
-      y * basePixelSize,
-      basePixelSize * size - 1,
-      basePixelSize * size - 1
-    );
-  };
-  
-  // Convierte las coordenadas de pantalla a coordenadas de la grilla.
-  const getCanvasCoordinates = (clientX, clientY) => {
-    const rect = outputCanvasRef.current.getBoundingClientRect();
-    const scaleX = outputCanvasRef.current.width / rect.width;
-    const scaleY = outputCanvasRef.current.height / rect.height;
-    const x = Math.floor(((clientX - rect.left) * scaleX) / basePixelSize);
-    const y = Math.floor(((clientY - rect.top) * scaleY) / basePixelSize);
-    return { x, y };
-  };
+  }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize, brushShape, drawPixel]);
   
   // Función que procesa el clic (o arrastre) sobre el canvas para pintar o borrar.
   const handleCanvasClick = (e) => {
@@ -159,9 +171,9 @@ function Rejilla({
         const py = gridY + j;
   
         if (tool === 'eraser') {
-          clearSquare(ctx, px, py);
+          clearPixel(ctx, px, py, 1, brushShape);
         } else if (tool === 'brush') {
-          drawSquare(ctx, px, py, selectedColor);
+          drawPixel(ctx, px, py, selectedColor, 1, brushShape);
         }
   
         // Redibuja la cuadrícula en el área modificada.
@@ -223,15 +235,7 @@ function Rejilla({
   
   return (
     <div>
-      {/* Controles para seleccionar herramienta y tamaño de pincel */}
-      <ToolControls 
-        tool={tool} 
-        setTool={setTool} 
-        brushSize={brushSize} 
-        setBrushSize={setBrushSize} 
-      />
-  
-      {/* Contenedor del canvas: ocupa toda la ventana y centra el área de trabajo */}
+      {/* El componente no muestra controles internos de herramienta */}
       <div
         className="canvas-container"
         onMouseDown={handleMouseDown}
@@ -250,11 +254,15 @@ function Rejilla({
           userSelect: 'none'
         }}
       >
-        {/* Canvas oculto para procesamiento de la imagen fuente */}
+        {/* Canvas oculto para procesar la imagen fuente */}
         <canvas ref={sourceCanvasRef} style={{ display: 'none' }}></canvas>
-        {/* Canvas de salida con imagen pixelada y cuadrícula */}
+        {/* 
+          Se añade "key" al canvas para forzar su re-montaje cuando cambie frameData o imageFile.
+          Así, al seleccionar un frame nuevo, se reinicializa el canvas con la imagen correspondiente.
+        */}
         <canvas
           ref={outputCanvasRef}
+          key={frameData || imageFile}
           id="output-canvas"
           style={{
             width: `${pixelWidth * basePixelSize}px`,
