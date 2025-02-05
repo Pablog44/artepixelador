@@ -126,7 +126,7 @@ function Controls({ page }) {
       return (
         <Rejilla
           imageFile={imageFile}
-          frameData={selectedFrameIndex !== null ? frames[selectedFrameIndex] : null}  // ¡Se pasa frameData!
+          frameData={selectedFrameIndex !== null ? frames[selectedFrameIndex] : null}  // Se pasa frameData
           pixelWidth={pixelWidth}
           pixelHeight={pixelHeight}
           selectedColor={selectedColor}
@@ -229,8 +229,9 @@ function Controls({ page }) {
         </button>
       )}
 
-      {/* Se muestran los controles si no es móvil o si el menú está abierto en móvil */}
-      {(!isMobile || menuOpen) && (
+      {/* Controles según la vista y el estado del menú */}
+      {!isMobile ? (
+        // Vista de escritorio: se muestran todos los controles
         <div className="controls">
           <div className="controls-group">
             {page === 'rejilla' ? (
@@ -363,6 +364,201 @@ function Controls({ page }) {
             setBrushShape={setBrushShape}
           />
         </div>
+      ) : (
+        // Vista móvil
+        menuOpen ? (
+          // Menú abierto: se muestran TODOS los controles
+          <div className="controls">
+            <div className="controls-group">
+              {page === 'rejilla' ? (
+                <Link to="/" className="button" style={buttonStyle}>
+                  Sin rejilla
+                </Link>
+              ) : (
+                <Link to="/rejilla" className="button" style={buttonStyle}>
+                  Con rejilla
+                </Link>
+              )}
+            </div>
+
+            <div className="controls-group">
+              <input
+                type="file"
+                id="image-upload"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="image-upload" className="button" style={buttonStyle}>
+                Cargar Imagen
+              </label>
+              <button
+                className="button"
+                onClick={() => {
+                  const canvas = document.getElementById('output-canvas');
+                  if (!canvas) return;
+                  const dataUrl = canvas.toDataURL('image/png', 1.0);
+                  const a = document.createElement('a');
+                  a.href = dataUrl;
+                  a.download = 'pixelated-image.png';
+                  a.click();
+                }}
+                style={buttonStyle}
+              >
+                Descargar PNG
+              </button>
+            </div>
+
+            <div className="controls-group">
+              <label>Ancho: </label>
+              <input
+                type="number"
+                min="1"
+                max="200"
+                value={pixelWidth}
+                onChange={(e) => setPixelWidth(Number(e.target.value))}
+                className="input-number"
+                style={buttonStyle}
+              />
+              <label>Altura: </label>
+              <input
+                type="number"
+                min="1"
+                max="200"
+                value={pixelHeight}
+                onChange={(e) => setPixelHeight(Number(e.target.value))}
+                className="input-number"
+                style={buttonStyle}
+              />
+            </div>
+
+            <div className="controls-group">
+              <input
+                type="color"
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                className="color-picker"
+                style={buttonStyle}
+              />
+            </div>
+
+            <div className="controls-group">
+              <button onClick={handleZoomIn} className="button" style={buttonStyle}>
+                Zoom In
+              </button>
+              <button onClick={handleZoomOut} className="button" style={buttonStyle}>
+                Zoom Out
+              </button>
+            </div>
+
+            <div className="move-controls">
+              <button onClick={() => handleMove('up')} className="button" style={buttonStyle}>
+                ↑
+              </button>
+              <button onClick={() => handleMove('left')} className="button" style={buttonStyle}>
+                ←
+              </button>
+              <button onClick={() => handleMove('down')} className="button" style={buttonStyle}>
+                ↓
+              </button>
+              <button onClick={() => handleMove('right')} className="button" style={buttonStyle}>
+                →
+              </button>
+            </div>
+
+            <div className="controls-group">
+              <button className="button" onClick={handleAgregarFrame} style={buttonStyle}>
+                Agregar Frame
+              </button>
+              <button
+                className="button"
+                onClick={handleActualizarFrame}
+                style={buttonStyle}
+                disabled={selectedFrameIndex === null}
+              >
+                Actualizar Frame
+              </button>
+              <button
+                className="button"
+                onClick={handleEliminarFrame}
+                style={buttonStyle}
+                disabled={selectedFrameIndex === null}
+              >
+                Eliminar Frame
+              </button>
+              <button className="button" onClick={handleDownloadGif} style={buttonStyle}>
+                Descargar GIF
+              </button>
+            </div>
+
+            {/* Controles de herramienta, tamaño y forma */}
+            <ToolControls
+              tool={tool}
+              setTool={setTool}
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+              brushShape={brushShape}
+              setBrushShape={setBrushShape}
+            />
+          </div>
+        ) : (
+          // Menú cerrado: se muestran SOLO el selector de color, los botones de zoom, las flechas (dispuestas como gamepad) y los desplegables de modo, tamaño y forma.
+          <div className="minimal-mobile-controls">
+            <div className="controls-group">
+              <input
+                type="color"
+                value={selectedColor}
+                onChange={(e) => setSelectedColor(e.target.value)}
+                className="color-picker"
+                style={buttonStyle}
+              />
+            </div>
+
+            <div className="controls-group">
+              <button onClick={handleZoomIn} className="button" style={buttonStyle}>
+                Zoom In
+              </button>
+              <button onClick={handleZoomOut} className="button" style={buttonStyle}>
+                Zoom Out
+              </button>
+            </div>
+
+            <div
+              className="move-controls"
+              style={{
+                display: 'grid',
+                gridTemplateAreas: `" . up ."
+                                    "left . right"
+                                    " . down ."`,
+                gridGap: '5px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                margin: '10px 0'
+              }}
+            >
+              <button style={{ gridArea: 'up' }} className="button" onClick={() => handleMove('up')}>
+                ↑
+              </button>
+              <button style={{ gridArea: 'left' }} className="button" onClick={() => handleMove('left')}>
+                ←
+              </button>
+              <button style={{ gridArea: 'right' }} className="button" onClick={() => handleMove('right')}>
+                →
+              </button>
+              <button style={{ gridArea: 'down' }} className="button" onClick={() => handleMove('down')}>
+                ↓
+              </button>
+            </div>
+
+            <ToolControls
+              tool={tool}
+              setTool={setTool}
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+              brushShape={brushShape}
+              setBrushShape={setBrushShape}
+            />
+          </div>
+        )
       )}
     </div>
   );

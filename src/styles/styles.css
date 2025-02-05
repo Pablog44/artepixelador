@@ -95,11 +95,11 @@ body, html, #root, .App {
     background-color: #ff6600;
     border: none;
     color: white;
-    padding: 10px 15px;
+    padding: 10px 10px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 14px;
+    font-size: 11px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
