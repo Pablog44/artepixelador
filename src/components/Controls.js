@@ -95,16 +95,65 @@ function Controls({ page }) {
     }
   };
 
-  // Función para descargar el GIF usando gifshot
-  const handleDownloadGif = () => {
+  // Función para descargar PNG con calidad ajustada
+  const handleDownloadPng = () => {
+    const originalCanvas = document.getElementById('output-canvas');
+    if (!originalCanvas) return;
+    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 500px)
+    const minDownloadSize = 1000;
+    const currentWidth = originalCanvas.width;
+    const scaleFactor = currentWidth < minDownloadSize ? Math.ceil(minDownloadSize / currentWidth) : 1;
+
+    const downloadCanvas = document.createElement('canvas');
+    downloadCanvas.width = originalCanvas.width * scaleFactor;
+    downloadCanvas.height = originalCanvas.height * scaleFactor;
+    const ctx = downloadCanvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(originalCanvas, 0, 0, downloadCanvas.width, downloadCanvas.height);
+    const dataUrl = downloadCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'pixelated-image.png';
+    a.click();
+  };
+
+  // Función para descargar GIF con calidad ajustada
+  const handleDownloadGif = async () => {
     if (frames.length === 0) return;
+    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 500px)
+    const minDownloadSize = 1000;
+    const originalCanvas = document.getElementById('output-canvas');
+    const currentWidth = originalCanvas ? originalCanvas.width : pixelWidth * 10;
+    const scaleFactor = currentWidth < minDownloadSize ? Math.ceil(minDownloadSize / currentWidth) : 1;
+    const finalGifWidth = originalCanvas ? originalCanvas.width * scaleFactor : pixelWidth * 10;
+    const finalGifHeight = originalCanvas ? originalCanvas.height * scaleFactor : pixelHeight * 10;
+
+    // Función que recibe un frame (dataURL) y lo escala en un canvas temporal
+    const upscaleFrame = (frameDataUrl) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = originalCanvas ? originalCanvas.width * scaleFactor : pixelWidth * 10;
+          tempCanvas.height = originalCanvas ? originalCanvas.height * scaleFactor : pixelHeight * 10;
+          const ctx = tempCanvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+          resolve(tempCanvas.toDataURL('image/png'));
+        };
+        img.src = frameDataUrl;
+      });
+    };
+
+    const upscaledFrames = await Promise.all(frames.map(upscaleFrame));
+
     gifshot.createGIF(
       {
-        images: frames,
-        gifWidth: pixelWidth * 10,
-        gifHeight: pixelHeight * 10,
-        numFrames: frames.length,
-        frameDuration: 0.5,
+        images: upscaledFrames,
+        gifWidth: finalGifWidth,
+        gifHeight: finalGifHeight,
+        numFrames: upscaledFrames.length,
+        frameDuration: 0.6,
       },
       function (obj) {
         if (!obj.error) {
@@ -257,15 +306,7 @@ function Controls({ page }) {
             </label>
             <button
               className="button"
-              onClick={() => {
-                const canvas = document.getElementById('output-canvas');
-                if (!canvas) return;
-                const dataUrl = canvas.toDataURL('image/png', 1.0);
-                const a = document.createElement('a');
-                a.href = dataUrl;
-                a.download = 'pixelated-image.png';
-                a.click();
-              }}
+              onClick={handleDownloadPng}
               style={buttonStyle}
             >
               Descargar PNG
@@ -393,15 +434,7 @@ function Controls({ page }) {
               </label>
               <button
                 className="button"
-                onClick={() => {
-                  const canvas = document.getElementById('output-canvas');
-                  if (!canvas) return;
-                  const dataUrl = canvas.toDataURL('image/png', 1.0);
-                  const a = document.createElement('a');
-                  a.href = dataUrl;
-                  a.download = 'pixelated-image.png';
-                  a.click();
-                }}
+                onClick={handleDownloadPng}
                 style={buttonStyle}
               >
                 Descargar PNG
@@ -528,7 +561,8 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."`,
+                                    " . down ."`
+                ,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',
