@@ -99,7 +99,7 @@ function Controls({ page }) {
   const handleDownloadPng = () => {
     const originalCanvas = document.getElementById('output-canvas');
     if (!originalCanvas) return;
-    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 500px)
+    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 1000px)
     const minDownloadSize = 1000;
     const currentWidth = originalCanvas.width;
     const scaleFactor = currentWidth < minDownloadSize ? Math.ceil(minDownloadSize / currentWidth) : 1;
@@ -120,7 +120,7 @@ function Controls({ page }) {
   // Función para descargar GIF con calidad ajustada
   const handleDownloadGif = async () => {
     if (frames.length === 0) return;
-    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 500px)
+    // Se define un tamaño mínimo deseado para el ancho descargado (por ejemplo, 1000px)
     const minDownloadSize = 1000;
     const originalCanvas = document.getElementById('output-canvas');
     const currentWidth = originalCanvas ? originalCanvas.width : pixelWidth * 10;
