@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/artepixelador/static/css/main.f2118748.css",
-    "main.js": "/artepixelador/static/js/main.bdf3f0de.js",
+    "main.js": "/artepixelador/static/js/main.cc217f10.js",
     "index.html": "/artepixelador/index.html",
     "main.f2118748.css.map": "/artepixelador/static/css/main.f2118748.css.map",
-    "main.bdf3f0de.js.map": "/artepixelador/static/js/main.bdf3f0de.js.map"
+    "main.cc217f10.js.map": "/artepixelador/static/js/main.cc217f10.js.map"
   },
   "entrypoints": [
     "static/css/main.f2118748.css",
-    "static/js/main.bdf3f0de.js"
+    "static/js/main.cc217f10.js"
   ]
 }
