@@ -132,6 +132,13 @@ function PixelatedImage({
         img.src = imgSrc;
       };
       reader.readAsDataURL(imageFile);
+    } else {
+      // Cuando no hay imagen cargada, aseguramos que el canvas tenga las dimensiones correctas
+      sourceCanvas.width = pixelWidth;
+      sourceCanvas.height = pixelHeight;
+      outputCanvas.width = pixelWidth * basePixelSize;
+      outputCanvas.height = pixelHeight * basePixelSize;
+      outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
     }
   }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize, brushShape, drawPixel]);
 

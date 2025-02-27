@@ -81,7 +81,8 @@ function Rejilla({
   };
   
   // Efecto para cargar la imagen base: si existe frameData se carga ese frame,
-  // de lo contrario se usa imageFile.
+  // de lo contrario se usa imageFile. Si no hay ninguna imagen, se inicializan
+  // los canvas con las dimensiones correctas para evitar píxeles rectangulares.
   useEffect(() => {
     const sourceCanvas = sourceCanvasRef.current;
     const outputCanvas = outputCanvasRef.current;
@@ -156,6 +157,13 @@ function Rejilla({
         img.src = e.target.result;
       };
       reader.readAsDataURL(imageFile);
+    } else {
+      // Cuando no hay imagen cargada, se asegura que el canvas tenga las dimensiones correctas.
+      sourceCanvas.width = pixelWidth;
+      sourceCanvas.height = pixelHeight;
+      outputCanvas.width = pixelWidth * basePixelSize;
+      outputCanvas.height = pixelHeight * basePixelSize;
+      outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
     }
   }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize, brushShape, drawPixel]);
   
