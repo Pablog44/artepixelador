@@ -32,6 +32,16 @@ function Controls({ page }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Permitir zoom con la rueda del ratón
+  const handleWheel = (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleZoomIn();
+    } else {
+      handleZoomOut();
+    }
+  };
+
   // Al cargar una imagen se limpia la selección de frame
   const handleFileChange = (e) => {
     setImageFile(e.target.files[0]);
@@ -243,7 +253,12 @@ function Controls({ page }) {
   return (
     <div className="controls-container">
       {/* Área de trabajo */}
-      <div className="pixelated-image-wrapper">{renderChildComponent()}</div>
+      <div 
+        className="pixelated-image-wrapper" 
+        onWheel={handleWheel}
+      >
+        {renderChildComponent()}
+      </div>
 
       {/* Previsualización de frames */}
       <div className="frames-preview" style={{ margin: '10px 0' }}>
