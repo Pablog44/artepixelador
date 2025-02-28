@@ -227,7 +227,9 @@ function Controls({ page }) {
             onClick={() => setTool('brush')}
             style={{
               background: tool === 'brush' ? '#ad4500' : '#ff6600',
-              border: 'rounded',
+              border: 'none',
+              padding: '8px',
+              borderRadius: '4px',
               cursor: 'pointer'
             }}
             title="Pincel"
@@ -255,48 +257,80 @@ function Controls({ page }) {
             onClick={() => setTool('line')}
             style={{
               background: tool === 'line' ? '#ad4500' : '#ff6600',
-              border: 'rounded',
+              border: 'none',
+              padding: '8px',
+              borderRadius: '4px',
               cursor: 'pointer'
             }}
             title="Línea"
           >
-          <svg style={{ color: 'white' }} class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7H7m2 3H7m2 3H7m4 2v2m3-2v2m3-2v2M4 5v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-9a1 1 0 0 1-1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1Z"/>
-          </svg>
-
+            <svg style={{ color: 'white' }} className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7H7m2 3H7m2 3H7m4 2v2m3-2v2m3-2v2M4 5v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-9a1 1 0 0 1-1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1Z"/>
+            </svg>
           </button>
           <button
             onClick={() => setTool('eraser')}
             style={{
               background: tool === 'eraser' ? '#ad4500' : '#ff6600',
-              border: 'rounded',
+              border: 'none',
+              padding: '8px',
+              borderRadius: '4px',
               cursor: 'pointer'
             }}
             title="Borrador"
           >
-          <svg style={{ color: 'white' }} class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
-          </svg>
-
+            <svg style={{ color: 'white' }} className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+            </svg>
           </button>
         </div>
-        <div>
-          <label>
-            Tamaño:
-            <select value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))}>
-              <option value={1}>1x1</option>
-              <option value={2}>2x2</option>
-              <option value={3}>3x3</option>
-              <option value={4}>4x4</option>
-            </select>
-          </label>
-          <label>
-            Forma:
-            <select value={brushShape} onChange={(e) => setBrushShape(e.target.value)}>
-              <option value="square">Cuadrado</option>
-              <option value="circle">Círculo</option>
-            </select>
-          </label>
+        <div style={{ marginTop: '10px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', gap: '5px' }}>
+              {[1, 2, 3, 4, 5].map((size) => (
+                <button 
+  key={size}
+  onClick={() => setBrushSize(size)}
+  className="tooltip-button"
+  data-tooltip={`${size}x${size}`}
+  style={{
+    width: `${5 * size}px`,
+    height: `${5 * size}px`,
+    background: brushSize === size ? '#ad4500' : '#ff6600',
+    border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
+    padding: 0,
+    margin: 0,
+    boxSizing: 'border-box',
+    cursor: 'pointer'
+  }}
+></button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <button
+              onClick={() => setBrushShape(brushShape === 'circle' ? 'square' : 'circle')}
+              className="tooltip-button"
+              data-tooltip={brushShape === 'circle' ? 'Círculo' : 'Cuadrado'}
+              style={{
+                width: '40px',
+                height: '40px',
+                background: '#ff6600',
+                border: '1px solid #ccc',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <div style={{
+                width: '20px',
+                height: '20px',
+                background: 'white',
+                borderRadius: brushShape === 'circle' ? '50%' : '0'
+              }}></div>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -304,6 +338,27 @@ function Controls({ page }) {
 
   return (
     <div className="controls-container">
+      {/* Bloque de estilos para tooltips */}
+      <style>{`
+        .tooltip-button {
+          position: relative;
+        }
+        .tooltip-button:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          background: #333;
+          color: #fff;
+          padding: 2px 5px;
+          border-radius: 3px;
+          top: -25px;
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          font-size: 12px;
+          z-index: 100;
+        }
+      `}</style>
+
       {/* Área de trabajo */}
       <div 
         className="pixelated-image-wrapper" 
@@ -601,7 +656,7 @@ function Controls({ page }) {
             />
           </div>
         ) : (
-          // Menú cerrado: se muestran SOLO el selector de color, los botones de zoom, las flechas (dispuestas como gamepad) y los desplegables de modo, tamaño y forma.
+          // Menú cerrado: se muestran SOLO el selector de color, los botones de zoom, las flechas (dispuestas como gamepad) y los controles de herramienta, tamaño y forma.
           <div className="minimal-mobile-controls">
             <div className="controls-group">
               <input
@@ -628,8 +683,7 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."`
-                ,
+                                    " . down ."`,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',
