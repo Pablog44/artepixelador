@@ -222,30 +222,82 @@ function Controls({ page }) {
   const ToolControls = ({ tool, setTool, brushSize, setBrushSize, brushShape, setBrushShape }) => {
     return (
       <div className="tool-controls">
-        <label>
-          Modo:
-          <select value={tool} onChange={(e) => setTool(e.target.value)}>
-            <option value="brush">Pincel</option>
-            <option value="line">Línea</option>
-            <option value="eraser">Borrador</option>
-          </select>
-        </label>
-        <label>
-          Tamaño:
-          <select value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))}>
-            <option value={1}>1x1</option>
-            <option value={2}>2x2</option>
-            <option value={3}>3x3</option>
-            <option value={4}>4x4</option>
-          </select>
-        </label>
-        <label>
-          Forma:
-          <select value={brushShape} onChange={(e) => setBrushShape(e.target.value)}>
-            <option value="square">Cuadrado</option>
-            <option value="circle">Círculo</option>
-          </select>
-        </label>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button
+            onClick={() => setTool('brush')}
+            style={{
+              background: tool === 'brush' ? '#ad4500' : '#ff6600',
+              border: 'rounded',
+              cursor: 'pointer'
+            }}
+            title="Pincel"
+          >
+            <svg
+              style={{ color: 'white' }}
+              className="w-6 h-6"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10.779 17.779L4.36 19.918L6.5 13.5m4.279 4.279l8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14l6.213-6.504M12.75 7.04L17 11.28"
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => setTool('line')}
+            style={{
+              background: tool === 'line' ? '#ad4500' : '#ff6600',
+              border: 'rounded',
+              cursor: 'pointer'
+            }}
+            title="Línea"
+          >
+          <svg style={{ color: 'white' }} class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7H7m2 3H7m2 3H7m4 2v2m3-2v2m3-2v2M4 5v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-9a1 1 0 0 1-1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1Z"/>
+          </svg>
+
+          </button>
+          <button
+            onClick={() => setTool('eraser')}
+            style={{
+              background: tool === 'eraser' ? '#ad4500' : '#ff6600',
+              border: 'rounded',
+              cursor: 'pointer'
+            }}
+            title="Borrador"
+          >
+          <svg style={{ color: 'white' }} class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+          </svg>
+
+          </button>
+        </div>
+        <div>
+          <label>
+            Tamaño:
+            <select value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))}>
+              <option value={1}>1x1</option>
+              <option value={2}>2x2</option>
+              <option value={3}>3x3</option>
+              <option value={4}>4x4</option>
+            </select>
+          </label>
+          <label>
+            Forma:
+            <select value={brushShape} onChange={(e) => setBrushShape(e.target.value)}>
+              <option value="square">Cuadrado</option>
+              <option value="circle">Círculo</option>
+            </select>
+          </label>
+        </div>
       </div>
     );
   };
