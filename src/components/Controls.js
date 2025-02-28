@@ -225,6 +225,8 @@ function Controls({ page }) {
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
             onClick={() => setTool('brush')}
+            className="tooltip-button"
+            data-tooltip={ 'Pincel'}
             style={{
               background: tool === 'brush' ? '#ad4500' : '#ff6600',
               border: 'none',
@@ -232,7 +234,7 @@ function Controls({ page }) {
               borderRadius: '4px',
               cursor: 'pointer'
             }}
-            title="Pincel"
+            
           >
             <svg
               style={{ color: 'white' }}
@@ -255,6 +257,8 @@ function Controls({ page }) {
           </button>
           <button
             onClick={() => setTool('line')}
+            className="tooltip-button"
+            data-tooltip={ 'Línea'}
             style={{
               background: tool === 'line' ? '#ad4500' : '#ff6600',
               border: 'none',
@@ -262,7 +266,6 @@ function Controls({ page }) {
               borderRadius: '4px',
               cursor: 'pointer'
             }}
-            title="Línea"
           >
             <svg style={{ color: 'white' }} className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7H7m2 3H7m2 3H7m4 2v2m3-2v2m3-2v2M4 5v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-9a1 1 0 0 1-1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1Z"/>
@@ -270,6 +273,8 @@ function Controls({ page }) {
           </button>
           <button
             onClick={() => setTool('eraser')}
+            className="tooltip-button"
+            data-tooltip={ 'Borrador'}
             style={{
               background: tool === 'eraser' ? '#ad4500' : '#ff6600',
               border: 'none',
@@ -277,7 +282,6 @@ function Controls({ page }) {
               borderRadius: '4px',
               cursor: 'pointer'
             }}
-            title="Borrador"
           >
             <svg style={{ color: 'white' }} className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
@@ -294,8 +298,8 @@ function Controls({ page }) {
   className="tooltip-button"
   data-tooltip={`${size}x${size}`}
   style={{
-    width: `${5 * size}px`,
-    height: `${5 * size}px`,
+    width: `${15 + (size + size  + size)}px`,
+    height: `${15 + (size + size  + size)}px`,
     background: brushSize === size ? '#ad4500' : '#ff6600',
     border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
     padding: 0,
@@ -311,7 +315,7 @@ function Controls({ page }) {
             <button
               onClick={() => setBrushShape(brushShape === 'circle' ? 'square' : 'circle')}
               className="tooltip-button"
-              data-tooltip={brushShape === 'circle' ? 'Círculo' : 'Cuadrado'}
+              data-tooltip={brushShape === 'circle' ? 'Cuadrado' : 'Círculo'}
               style={{
                 width: '40px',
                 height: '40px',
