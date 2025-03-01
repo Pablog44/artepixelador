@@ -230,7 +230,45 @@ function Controls({ page }) {
           onClick={() => setMenuOpen(!menuOpen)}
           style={{ marginBottom: '10px' }}
         >
-          {menuOpen ? 'Cerrar Menú' : 'Abrir Menú'}
+          {menuOpen ? (
+            // SVG para cerrar menú
+            <svg
+              className="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="m19 9-7 7-7-7"
+              />
+            </svg>
+          ) : (
+            // SVG para abrir menú
+            <svg
+              className="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="m5 15 7-7 7 7"
+              />
+            </svg>
+          )}
         </button>
       )}
 
@@ -438,7 +476,8 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."`,
+                                    " . down ."`
+                ,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',
