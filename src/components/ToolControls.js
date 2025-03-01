@@ -1,9 +1,33 @@
 // components/ToolControls.js
 import React from 'react';
 
-const ToolControls = ({ tool, setTool, brushSize, setBrushSize, brushShape, setBrushShape }) => {
+const ToolControls = ({
+  tool,
+  setTool,
+  brushSize,
+  setBrushSize,
+  brushShape,
+  setBrushShape,
+  isMobile
+}) => {
+  // Para dispositivos móviles: layout horizontal; en desktop se usa el layout por defecto (dos filas)
+  const containerStyle = isMobile
+    ? {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    : {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px'
+      };
+
   return (
-    <div className="tool-controls">
+    <div className="tool-controls" style={containerStyle}>
+      {/* Grupo de herramientas: pincel, línea, borrador */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <button
           onClick={() => setTool('brush')}
@@ -99,55 +123,52 @@ const ToolControls = ({ tool, setTool, brushSize, setBrushSize, brushShape, setB
           </svg>
         </button>
       </div>
-      <div style={{ marginTop: '10px', display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', gap: '5px' }}>
-            {[1, 2, 3, 4, 5].map((size) => (
-              <button 
-                key={size}
-                onClick={() => setBrushSize(size)}
-                className="tooltip-button"
-                data-tooltip={`${size}x${size}`}
-                style={{
-                  width: `${15 + (size + size + size)}px`,
-                  height: `${15 + (size + size + size)}px`,
-                  background: brushSize === size ? '#ad4500' : '#ff6600',
-                  border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
-                  padding: 0,
-                  margin: 0,
-                  boxSizing: 'border-box',
-                  cursor: 'pointer'
-                }}
-              ></button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <button
-            onClick={() => setBrushShape(brushShape === 'circle' ? 'square' : 'circle')}
-            className="tooltip-button"
-            data-tooltip={brushShape === 'circle' ? 'Cuadrado' : 'Círculo'}
-            style={{
-              width: '40px',
-              height: '40px',
-              background: '#ff6600',
-              border: '1px solid #ccc',
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-          >
-            <div
+      {/* Grupo de selectores de tamaño y forma */}
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {[1, 2, 3, 4, 5].map((size) => (
+            <button
+              key={size}
+              onClick={() => setBrushSize(size)}
+              className="tooltip-button"
+              data-tooltip={`${size}x${size}`}
               style={{
-                width: '20px',
-                height: '20px',
-                background: 'white',
-                borderRadius: brushShape === 'circle' ? '50%' : '0'
+                width: `${15 + size * 3}px`,
+                height: `${15 + size * 3}px`,
+                background: brushSize === size ? '#ad4500' : '#ff6600',
+                border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
+                padding: 0,
+                margin: 0,
+                boxSizing: 'border-box',
+                cursor: 'pointer'
               }}
-            ></div>
-          </button>
+            ></button>
+          ))}
         </div>
+        <button
+          onClick={() => setBrushShape(brushShape === 'circle' ? 'square' : 'circle')}
+          className="tooltip-button"
+          data-tooltip={brushShape === 'circle' ? 'Cuadrado' : 'Círculo'}
+          style={{
+            width: '40px',
+            height: '40px',
+            background: '#ff6600',
+            border: '1px solid #ccc',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <div
+            style={{
+              width: '20px',
+              height: '20px',
+              background: 'white',
+              borderRadius: brushShape === 'circle' ? '50%' : '0'
+            }}
+          ></div>
+        </button>
       </div>
     </div>
   );

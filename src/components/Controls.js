@@ -224,52 +224,53 @@ function Controls({ page }) {
         setSelectedFrameIndex={setSelectedFrameIndex}
       />
 
+      {/* Contenedor para centrar el botón de menú en móviles */}
       {isMobile && (
-        <button
-          className="menu-button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{ marginBottom: '10px' }}
-        >
-          {menuOpen ? (
-            // SVG para cerrar menú
-            <svg
-              className="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m19 9-7 7-7-7"
-              />
-            </svg>
-          ) : (
-            // SVG para abrir menú
-            <svg
-              className="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m5 15 7-7 7 7"
-              />
-            </svg>
-          )}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+          <button
+            className="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{ width: 40 }}
+          >
+            {menuOpen ? (
+              // SVG para cerrar menú
+              <svg
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m19 9-7 7-7-7"
+                />
+              </svg>
+            ) : (
+              // SVG para abrir menú
+              <svg
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m5 15 7-7 7 7"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Renderizado según si es vista de escritorio o móvil */}
@@ -359,6 +360,7 @@ function Controls({ page }) {
           </div>
 
           <ToolControls
+            isMobile={false}
             tool={tool}
             setTool={setTool}
             brushSize={brushSize}
@@ -368,7 +370,8 @@ function Controls({ page }) {
           />
         </div>
       ) : (
-        // Vista móvil: se muestran todos los controles si el menú está abierto, o una versión mínima
+        // Vista móvil: si el menú está abierto se muestran todos los controles;
+        // en la vista mínima se muestran solo algunos y los ToolControls se disponen horizontalmente.
         menuOpen ? (
           <div className="controls">
             <div className="controls-group">
@@ -448,6 +451,7 @@ function Controls({ page }) {
               </button>
             </div>
             <ToolControls
+              isMobile={true}
               tool={tool}
               setTool={setTool}
               brushSize={brushSize}
@@ -476,8 +480,7 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."`
-                ,
+                                    " . down ."`,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -498,6 +501,7 @@ function Controls({ page }) {
               </button>
             </div>
             <ToolControls
+              isMobile={true}
               tool={tool}
               setTool={setTool}
               brushSize={brushSize}
