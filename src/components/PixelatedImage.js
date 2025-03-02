@@ -19,7 +19,7 @@ function PixelatedImage({
   // Estados internos para pan y dibujo
   const [isPanning, setIsPanning] = useState(false);
   const [startCoords, setStartCoords] = useState({ x: 0, y: 0 });
-  const [lineStart, setLineStart] = useState(null);
+  const [lineStart, setLineStart] = useState(null);  // Para línea, rectángulo y elipse
   const [isDrawing, setIsDrawing] = useState(false);
 
   // Calcula el tamaño base de cada "píxel" para que el canvas ocupe ~90% de la ventana.
@@ -30,7 +30,7 @@ function PixelatedImage({
     )
   );
 
-  // Función para dibujar un "píxel" según la forma elegida
+  // Función para dibujar UN "píxel" según la forma elegida (brushShape)
   const drawPixel = useCallback((ctx, x, y, color, size, shape) => {
     ctx.fillStyle = color;
     if (shape === 'circle') {
@@ -41,7 +41,7 @@ function PixelatedImage({
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.fill();
     } else {
-      // Por defecto, forma cuadrada
+      // Forma cuadrada
       ctx.fillRect(
         x * basePixelSize,
         y * basePixelSize,
@@ -51,7 +51,7 @@ function PixelatedImage({
     }
   }, [basePixelSize]);
 
-  // Función para borrar un "píxel" según la forma (usa clearRect o destination‐out para círculo)
+  // Función para borrar UN "píxel"
   const clearPixel = (ctx, x, y, size, shape) => {
     if (shape === 'circle') {
       ctx.save();
@@ -85,7 +85,7 @@ function PixelatedImage({
     outputCtx.imageSmoothingEnabled = false;
 
     if (frameData) {
-      // Si se edita un frame guardado, ya está pixelado
+      // Si es un frame existente, ya está "pixelado"
       sourceCanvas.width = pixelWidth * basePixelSize;
       sourceCanvas.height = pixelHeight * basePixelSize;
       outputCanvas.width = pixelWidth * basePixelSize;
@@ -120,7 +120,7 @@ function PixelatedImage({
           // Dibuja la imagen reducida en el canvas fuente
           sourceCtx.drawImage(img, 0, 0, pixelWidth, pixelHeight);
 
-          // Recorre cada “píxel” y dibuja ampliado en el canvas de salida
+          // Recorre cada píxel y lo "amplía" en el outputCanvas
           for (let y = 0; y < pixelHeight; y++) {
             for (let x = 0; x < pixelWidth; x++) {
               const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
@@ -133,7 +133,7 @@ function PixelatedImage({
       };
       reader.readAsDataURL(imageFile);
     } else {
-      // Cuando no hay imagen cargada, aseguramos que el canvas tenga las dimensiones correctas
+      // Sin imagen: solo aseguramos las dimensiones
       sourceCanvas.width = pixelWidth;
       sourceCanvas.height = pixelHeight;
       outputCanvas.width = pixelWidth * basePixelSize;
@@ -142,7 +142,7 @@ function PixelatedImage({
     }
   }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize, brushShape, drawPixel]);
 
-  // Obtiene las coordenadas de la grilla a partir de la posición del mouse/touch
+  // Obtener coordenadas de la grilla según el mouse/touch
   const getCanvasCoordinates = (clientX, clientY) => {
     const rect = outputCanvasRef.current.getBoundingClientRect();
     const scaleX = outputCanvasRef.current.width / rect.width;
@@ -152,7 +152,7 @@ function PixelatedImage({
     return { x, y };
   };
 
-  // Dibuja o borra (según la herramienta) en la posición dada
+  // Dibuja o borra (brush o eraser) un pixel
   const paintOrErase = (clientX, clientY, toolType) => {
     const ctx = outputCanvasRef.current.getContext('2d');
     const { x, y } = getCanvasCoordinates(clientX, clientY);
@@ -164,7 +164,7 @@ function PixelatedImage({
     }
   };
 
-  // Dibuja una línea (algoritmo de Bresenham) usando la forma elegida para cada "píxel"
+  // Línea con Bresenham (píxel a píxel)
   const drawLine = (x0, y0, x1, y1, color, size) => {
     const ctx = outputCanvasRef.current.getContext('2d');
     let dx = Math.abs(x1 - x0);
@@ -188,18 +188,88 @@ function PixelatedImage({
     }
   };
 
+  // Rectángulo "hueco" (solo borde) con grosor = brushSize
+  const drawRectangle = (x0, y0, x1, y1, color, size) => {
+    const ctx = outputCanvasRef.current.getContext('2d');
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+
+    // Recorremos la zona total, y solo pintamos el borde
+    for (let py = minY; py <= maxY; py++) {
+      for (let px = minX; px <= maxX; px++) {
+        const topBorder = (py < minY + size); 
+        const bottomBorder = (py > maxY - size);
+        const leftBorder = (px < minX + size);
+        const rightBorder = (px > maxX - size);
+
+        // Si está en alguno de los bordes
+        if (topBorder || bottomBorder || leftBorder || rightBorder) {
+          drawPixel(ctx, px, py, color, 1, 'square'); 
+        }
+      }
+    }
+  };
+
+  // Elipse / Círculo "hueco" (solo borde) usando anillo
+  const drawEllipse = (x0, y0, x1, y1, color, size) => {
+    const ctx = outputCanvasRef.current.getContext('2d');
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+
+    // Centro y radios
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const rx = Math.abs(x1 - x0) / 2;
+    const ry = Math.abs(y1 - y0) / 2;
+
+    // Radios “internos” para dejar hueco
+    const rxInner = rx - size;
+    const ryInner = ry - size;
+
+    // Recorremos toda la caja delimitadora
+    for (let py = minY; py <= maxY; py++) {
+      for (let px = minX; px <= maxX; px++) {
+        // Ecuación de la elipse exterior
+        const dx = px - centerX;
+        const dy = py - centerY;
+        const outerEq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+
+        if (outerEq <= 1) {
+          // Está dentro (o sobre) la elipse grande
+          if (rxInner > 0 && ryInner > 0) {
+            // Ecuación de la elipse interior
+            const innerEq = (dx * dx) / (rxInner * rxInner) + (dy * dy) / (ryInner * ryInner);
+            // Pintamos si está fuera de la elipse interior (crea un anillo)
+            if (innerEq > 1) {
+              drawPixel(ctx, px, py, color, 1, 'square');
+            }
+          } else {
+            // Si la elipse interior es <= 0, 
+            // significa que el brushSize es tan grande que no hay hueco, 
+            // pintamos toda la elipse
+            drawPixel(ctx, px, py, color, 1, 'square');
+          }
+        }
+      }
+    }
+  };
+
   // Eventos de mouse
   const handleMouseDown = (e) => {
     if (e.ctrlKey) {
-      // Inicia pan (arrastre) si se presiona Ctrl + click
+      // Pan (mover) si se hace Ctrl+click
       setIsPanning(true);
       setStartCoords({ x: e.clientX - position.x, y: e.clientY - position.y });
-    } else if (tool === 'line') {
-      // Inicia el trazo de línea
+    } else if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
+      // Inicia el trazo de línea/rectángulo/elipse
       const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
       setLineStart({ x, y });
     } else {
-      // Inicia dibujo (pincel o borrador)
+      // Pincel o borrador
       setIsDrawing(true);
       paintOrErase(e.clientX, e.clientY, tool);
     }
@@ -211,7 +281,12 @@ function PixelatedImage({
         x: e.clientX - startCoords.x,
         y: e.clientY - startCoords.y
       });
-    } else if (tool !== 'line' && isDrawing) {
+    } else if (
+      tool !== 'line' && 
+      tool !== 'rectangle' && 
+      tool !== 'ellipse' && 
+      isDrawing
+    ) {
       paintOrErase(e.clientX, e.clientY, tool);
     }
   };
@@ -220,18 +295,26 @@ function PixelatedImage({
     setIsPanning(false);
     setIsDrawing(false);
 
-    if (tool === 'line' && lineStart) {
+    // Si es línea, rectángulo o elipse
+    if ((tool === 'line' || tool === 'rectangle' || tool === 'ellipse') && lineStart) {
       const { x: endX, y: endY } = getCanvasCoordinates(e.clientX, e.clientY);
-      drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+
+      if (tool === 'line') {
+        drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      } else if (tool === 'rectangle') {
+        drawRectangle(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      } else if (tool === 'ellipse') {
+        drawEllipse(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      }
       setLineStart(null);
     }
   };
 
-  // Soporte para eventos táctiles
+  // Eventos táctiles (para móvil)
   const handleTouchStart = (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    if (tool === 'line') {
+    if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
       const { x, y } = getCanvasCoordinates(touch.clientX, touch.clientY);
       setLineStart({ x, y });
     } else {
@@ -242,7 +325,12 @@ function PixelatedImage({
 
   const handleTouchMove = (e) => {
     e.preventDefault();
-    if (isDrawing && tool !== 'line') {
+    if (
+      isDrawing && 
+      tool !== 'line' && 
+      tool !== 'rectangle' && 
+      tool !== 'ellipse'
+    ) {
       const touch = e.touches[0];
       paintOrErase(touch.clientX, touch.clientY, tool);
     }
@@ -251,10 +339,18 @@ function PixelatedImage({
   const handleTouchEnd = (e) => {
     e.preventDefault();
     setIsDrawing(false);
-    if (tool === 'line' && lineStart) {
+
+    if ((tool === 'line' || tool === 'rectangle' || tool === 'ellipse') && lineStart) {
       const touch = e.changedTouches[0];
       const { x: endX, y: endY } = getCanvasCoordinates(touch.clientX, touch.clientY);
-      drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+
+      if (tool === 'line') {
+        drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      } else if (tool === 'rectangle') {
+        drawRectangle(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      } else if (tool === 'ellipse') {
+        drawEllipse(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+      }
       setLineStart(null);
     }
   };
@@ -281,6 +377,7 @@ function PixelatedImage({
       >
         {/* Canvas oculto para procesar la imagen fuente */}
         <canvas ref={sourceCanvasRef} style={{ display: 'none' }}></canvas>
+
         {/* Canvas de salida con la imagen pixelada */}
         <canvas
           ref={outputCanvasRef}

@@ -10,7 +10,7 @@ const ToolControls = ({
   setBrushShape,
   isMobile
 }) => {
-  // Para dispositivos móviles: layout horizontal; en desktop se usa el layout por defecto (dos filas)
+  // Layout: horizontal en móviles, vertical en desktop
   const containerStyle = isMobile
     ? {
         display: 'flex',
@@ -27,7 +27,7 @@ const ToolControls = ({
 
   return (
     <div className="tool-controls" style={containerStyle}>
-      {/* Grupo de herramientas: pincel, línea, borrador */}
+      {/* Grupo de herramientas básicas: pincel, línea, borrador */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <button
           onClick={() => setTool('brush')}
@@ -123,7 +123,62 @@ const ToolControls = ({
           </svg>
         </button>
       </div>
-      {/* Grupo de selectores de tamaño y forma */}
+
+      {/* Grupo para herramientas de formas: rectángulo y elipse */}
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <button
+          onClick={() => setTool('rectangle')}
+          className="tooltip-button"
+          data-tooltip="Rectángulo"
+          style={{
+            background: tool === 'rectangle' ? '#ad4500' : '#ff6600',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          <svg
+            style={{ color: 'white' }}
+            className="w-6 h-6"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <rect x="4" y="4" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+        </button>
+        <button
+          onClick={() => setTool('ellipse')}
+          className="tooltip-button"
+          data-tooltip="Elipse"
+          style={{
+            background: tool === 'ellipse' ? '#ad4500' : '#ff6600',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          <svg
+            style={{ color: 'white' }}
+            className="w-6 h-6"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <ellipse cx="12" cy="12" rx="8" ry="5" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Grupo de selectores para el pincel (tamaño y forma) */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '5px' }}>
           {[1, 2, 3, 4, 5].map((size) => (
