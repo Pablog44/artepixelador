@@ -1,7 +1,8 @@
 // components/Controls.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import gifshot from 'gifshot';
+// Se reemplaza gifshot por gif.js
+import GIF from 'gif.js.optimized';
 import ToolControls from './ToolControls';
 import MovementControls from './MovementControls';
 import ZoomControls from './ZoomControls';
@@ -25,6 +26,8 @@ function Controls({ page }) {
   const [brushShape, setBrushShape] = useState('square');
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // Nuevo estado para la duración de los frames (en segundos)
+  const [frameDuration, setFrameDuration] = useState(0.6);
 
   // Actualizar si se está en dispositivo móvil
   useEffect(() => {
@@ -122,53 +125,41 @@ function Controls({ page }) {
     a.click();
   };
 
+  // Nueva función para descargar el GIF usando gif.js
   const handleDownloadGif = async () => {
     if (frames.length === 0) return;
-    const minDownloadSize = 1000;
-    const originalCanvas = document.getElementById('output-canvas');
-    const currentWidth = originalCanvas ? originalCanvas.width : pixelWidth * 10;
-    const scaleFactor = currentWidth < minDownloadSize ? Math.ceil(minDownloadSize / currentWidth) : 1;
-    const finalGifWidth = originalCanvas ? originalCanvas.width * scaleFactor : pixelWidth * 10;
-    const finalGifHeight = originalCanvas ? originalCanvas.height * scaleFactor : pixelHeight * 10;
+    // Crea un objeto GIF con las opciones deseadas.
+    const gif = new GIF({
+      workers: 2,
+      quality: 10,
+      workerScript: `${process.env.PUBLIC_URL}/gif.worker.js`
+    });
+    
 
-    const upscaleFrame = (frameDataUrl) => {
-      return new Promise((resolve) => {
+    // Función para cargar una imagen a partir de un dataURL.
+    const loadImage = (dataUrl) => {
+      return new Promise((resolve, reject) => {
         const img = new Image();
-        img.onload = () => {
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = originalCanvas ? originalCanvas.width * scaleFactor : pixelWidth * 10;
-          tempCanvas.height = originalCanvas ? originalCanvas.height * scaleFactor : pixelHeight * 10;
-          const ctx = tempCanvas.getContext('2d');
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-          resolve(tempCanvas.toDataURL('image/png'));
-        };
-        img.src = frameDataUrl;
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = dataUrl;
       });
     };
 
-    const upscaledFrames = await Promise.all(frames.map(upscaleFrame));
+    // Por cada frame, carga la imagen y agrégala al GIF con el delay definido (en milisegundos).
+    for (let frameDataUrl of frames) {
+      const img = await loadImage(frameDataUrl);
+      gif.addFrame(img, { delay: frameDuration * 1000, copy: true });
+    }
 
-    gifshot.createGIF(
-      {
-        images: upscaledFrames,
-        gifWidth: finalGifWidth,
-        gifHeight: finalGifHeight,
-        numFrames: upscaledFrames.length,
-        frameDuration: 0.6,
-      },
-      function (obj) {
-        if (!obj.error) {
-          const { image } = obj;
-          const a = document.createElement('a');
-          a.href = image;
-          a.download = 'animation.gif';
-          a.click();
-        } else {
-          console.error('Error creando GIF:', obj.errorMsg);
-        }
-      }
-    );
+    gif.on('finished', function(blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'animation.gif';
+      a.click();
+    });
+
+    gif.render();
   };
 
   // Para enviar a la vista del canvas (PixelatedImage o Rejilla)
@@ -317,6 +308,21 @@ function Controls({ page }) {
             />
           </div>
 
+          {/* Grupo para elegir la duración de los frames */}
+          <div className="controls-group">
+            <label>Duración: </label>
+            <input
+              type="number"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value={frameDuration}
+              onChange={(e) => setFrameDuration(Number(e.target.value))}
+              className="input-number"
+              style={{ margin: '0 8px' }}
+            />
+          </div>
+
           <div className="controls-group">
             <input
               type="color"
@@ -412,6 +418,20 @@ function Controls({ page }) {
                 style={{ margin: '0 8px' }}
               />
             </div>
+            {/* Grupo para elegir la duración de los frames en móvil */}
+            <div className="controls-group">
+              <label>Duración: </label>
+              <input
+                type="number"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value={frameDuration}
+                onChange={(e) => setFrameDuration(Number(e.target.value))}
+                className="input-number"
+                style={{ margin: '0 8px' }}
+              />
+            </div>
             <div className="controls-group">
               <input
                 type="color"
@@ -480,7 +500,7 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."`,
+                                    " . down ."` ,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',

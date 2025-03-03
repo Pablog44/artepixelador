@@ -16,9 +16,10 @@ function Rejilla({
   const sourceCanvasRef = useRef(null);
   const outputCanvasRef = useRef(null);
   
-  // Estado para manejar el panning (arrastre) del canvas
+  // Estados para panning y para el trazo de línea/rectángulo/elipse
   const [isPanning, setIsPanning] = useState(false);
   const [startCoords, setStartCoords] = useState({ x: 0, y: 0 });
+  const [lineStart, setLineStart] = useState(null);
   
   // Calcula el tamaño base de cada “píxel” para que el canvas ocupe aproximadamente el 90% de la ventana.
   const basePixelSize = Math.floor(
@@ -28,7 +29,7 @@ function Rejilla({
     )
   );
   
-  // Envolvemos drawPixel en useCallback para poder incluirlo en el array de dependencias
+  // Función para dibujar un “píxel” según la forma (cuadrado o círculo)
   const drawPixel = useCallback((ctx, x, y, color, size = 1, shape = 'square') => {
     ctx.fillStyle = color;
     if (shape === 'circle') {
@@ -70,6 +71,121 @@ function Rejilla({
     }
   };
   
+  // Función para dibujar una línea usando el algoritmo de Bresenham.
+  // Ahora, si brushSize > 1 se recorre cada celda del bloque para dibujar la rejilla negra.
+  const drawLine = (x0, y0, x1, y1, color, size) => {
+    const ctx = outputCanvasRef.current.getContext('2d');
+    let dx = Math.abs(x1 - x0);
+    let dy = Math.abs(y1 - y0);
+    let sx = x0 < x1 ? 1 : -1;
+    let sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    while (true) {
+      // Dibuja el bloque con el tamaño indicado
+      drawPixel(ctx, x0, y0, color, size, brushShape);
+      // Para cada celda dentro del bloque se dibuja la rejilla negra
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            (x0 + i) * basePixelSize + 0.5,
+            (y0 + j) * basePixelSize + 0.5,
+            basePixelSize - 1,
+            basePixelSize - 1
+          );
+        }
+      }
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy;
+        x0 += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        y0 += sy;
+      }
+    }
+  };
+  
+  // Función para dibujar un rectángulo "hueco" (solo el borde) con grosor = brushSize
+  const drawRectangle = (x0, y0, x1, y1, color, size) => {
+    const ctx = outputCanvasRef.current.getContext('2d');
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+    for (let py = minY; py <= maxY; py++) {
+      for (let px = minX; px <= maxX; px++) {
+        const topBorder = (py < minY + size); 
+        const bottomBorder = (py > maxY - size);
+        const leftBorder = (px < minX + size);
+        const rightBorder = (px > maxX - size);
+        if (topBorder || bottomBorder || leftBorder || rightBorder) {
+          drawPixel(ctx, px, py, color, 1, 'square');
+          // Se dibuja la cuadrícula negra para cada celda involucrada
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            px * basePixelSize + 0.5,
+            py * basePixelSize + 0.5,
+            basePixelSize - 1,
+            basePixelSize - 1
+          );
+        }
+      }
+    }
+  };
+  
+  // Función para dibujar una elipse (círculo hueco) usando un anillo
+  const drawEllipse = (x0, y0, x1, y1, color, size) => {
+    const ctx = outputCanvasRef.current.getContext('2d');
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const rx = Math.abs(x1 - x0) / 2;
+    const ry = Math.abs(y1 - y0) / 2;
+    const rxInner = rx - size;
+    const ryInner = ry - size;
+    for (let py = minY; py <= maxY; py++) {
+      for (let px = minX; px <= maxX; px++) {
+        const dx = px - centerX;
+        const dy = py - centerY;
+        const outerEq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+        if (outerEq <= 1) {
+          if (rxInner > 0 && ryInner > 0) {
+            const innerEq = (dx * dx) / (rxInner * rxInner) + (dy * dy) / (ryInner * ryInner);
+            if (innerEq > 1) {
+              drawPixel(ctx, px, py, color, 1, 'square');
+              ctx.strokeStyle = 'black';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(
+                px * basePixelSize + 0.5,
+                py * basePixelSize + 0.5,
+                basePixelSize - 1,
+                basePixelSize - 1
+              );
+            }
+          } else {
+            drawPixel(ctx, px, py, color, 1, 'square');
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(
+              px * basePixelSize + 0.5,
+              py * basePixelSize + 0.5,
+              basePixelSize - 1,
+              basePixelSize - 1
+            );
+          }
+        }
+      }
+    }
+  };
+  
   // Convierte las coordenadas de pantalla a coordenadas de la grilla.
   const getCanvasCoordinates = (clientX, clientY) => {
     const rect = outputCanvasRef.current.getBoundingClientRect();
@@ -101,7 +217,7 @@ function Rejilla({
       const img = new Image();
       img.onload = () => {
         outputCtx.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
-        // Dibujar la cuadrícula sobre la imagen.
+        // Dibuja la cuadrícula sobre toda la imagen.
         for (let y = 0; y < pixelHeight; y++) {
           for (let x = 0; x < pixelWidth; x++) {
             outputCtx.strokeStyle = 'black';
@@ -142,7 +258,7 @@ function Rejilla({
               const pixelData = sourceCtx.getImageData(x, y, 1, 1).data;
               const color = `rgba(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]}, ${pixelData[3] / 255})`;
               drawPixel(outputCtx, x, y, color, 1, brushShape);
-              // Dibujar la cuadrícula.
+              // Dibuja la cuadrícula en cada celda.
               outputCtx.strokeStyle = 'black';
               outputCtx.lineWidth = 1;
               outputCtx.strokeRect(
@@ -168,6 +284,8 @@ function Rejilla({
   }, [imageFile, frameData, pixelWidth, pixelHeight, basePixelSize, brushShape, drawPixel]);
   
   // Función que procesa el clic (o arrastre) sobre el canvas para pintar o borrar.
+  // Se mantiene la funcionalidad de la cuadrícula negra, pero si se usa el borrador (eraser)
+  // se borra por completo la celda sin volver a dibujar el borde.
   const handleCanvasClick = (e) => {
     if (e.ctrlKey || isPanning) return;
     const { x: gridX, y: gridY } = getCanvasCoordinates(e.clientX, e.clientY);
@@ -180,19 +298,19 @@ function Rejilla({
   
         if (tool === 'eraser') {
           clearPixel(ctx, px, py, 1, brushShape);
+          // En modo borrador no se redibuja la cuadrícula, borrándolo todo.
         } else if (tool === 'brush') {
           drawPixel(ctx, px, py, selectedColor, 1, brushShape);
+          // Redibuja la cuadrícula negra en el área modificada.
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            px * basePixelSize + 0.5,
+            py * basePixelSize + 0.5,
+            basePixelSize - 1,
+            basePixelSize - 1
+          );
         }
-  
-        // Redibuja la cuadrícula en el área modificada.
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          px * basePixelSize + 0.5,
-          py * basePixelSize + 0.5,
-          basePixelSize - 1,
-          basePixelSize - 1
-        );
       }
     }
   };
@@ -202,6 +320,9 @@ function Rejilla({
     if (e.ctrlKey) {
       setIsPanning(true);
       setStartCoords({ x: e.clientX - position.x, y: e.clientY - position.y });
+    } else if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
+      const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
+      setLineStart({ x, y });
     } else {
       handleCanvasClick(e);
     }
@@ -214,23 +335,43 @@ function Rejilla({
         y: e.clientY - startCoords.y,
       });
     } else if (e.buttons) {
-      handleCanvasClick(e);
+      if (!(tool === 'line' || tool === 'rectangle' || tool === 'ellipse')) {
+        handleCanvasClick(e);
+      }
     }
   };
   
-  const handleMouseUp = () => {
+  const handleMouseUp = (e) => {
+    if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
+      if (lineStart) {
+        const { x: endX, y: endY } = getCanvasCoordinates(e.clientX, e.clientY);
+        if (tool === 'line') {
+          drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        } else if (tool === 'rectangle') {
+          drawRectangle(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        } else if (tool === 'ellipse') {
+          drawEllipse(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        }
+        setLineStart(null);
+      }
+    }
     setIsPanning(false);
   };
   
   const handleTouchStart = (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, ctrlKey: e.ctrlKey });
+    if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
+      const { x, y } = getCanvasCoordinates(touch.clientX, touch.clientY);
+      setLineStart({ x, y });
+    } else {
+      handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, ctrlKey: e.ctrlKey });
+    }
   };
   
   const handleTouchMove = (e) => {
     e.preventDefault();
-    if (e.touches.length) {
+    if (e.touches.length && !(tool === 'line' || tool === 'rectangle' || tool === 'ellipse')) {
       const touch = e.touches[0];
       handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, ctrlKey: e.ctrlKey });
     }
@@ -238,12 +379,25 @@ function Rejilla({
   
   const handleTouchEnd = (e) => {
     e.preventDefault();
+    if (tool === 'line' || tool === 'rectangle' || tool === 'ellipse') {
+      if (lineStart) {
+        const touch = e.changedTouches[0];
+        const { x: endX, y: endY } = getCanvasCoordinates(touch.clientX, touch.clientY);
+        if (tool === 'line') {
+          drawLine(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        } else if (tool === 'rectangle') {
+          drawRectangle(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        } else if (tool === 'ellipse') {
+          drawEllipse(lineStart.x, lineStart.y, endX, endY, selectedColor, brushSize);
+        }
+        setLineStart(null);
+      }
+    }
     setIsPanning(false);
   };
   
   return (
     <div>
-      {/* El componente no muestra controles internos de herramienta */}
       <div
         className="canvas-container"
         onMouseDown={handleMouseDown}
@@ -264,7 +418,7 @@ function Rejilla({
       >
         {/* Canvas oculto para procesar la imagen fuente */}
         <canvas ref={sourceCanvasRef} style={{ display: 'none' }}></canvas>
-        {/* 
+        {/*
           Se añade "key" al canvas para forzar su re-montaje cuando cambie frameData o imageFile.
           Así, al seleccionar un frame nuevo, se reinicializa el canvas con la imagen correspondiente.
         */}
