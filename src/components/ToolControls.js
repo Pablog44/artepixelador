@@ -10,20 +10,29 @@ const ToolControls = ({
   setBrushShape,
   isMobile
 }) => {
-  // Layout: horizontal en móviles, vertical en desktop
-  const containerStyle = isMobile
-    ? {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '10px',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    : {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-      };
+  // Factor de escala: en móvil se usan números más pequeños y en PC también se reducen respecto al código original.
+  // Puedes ajustar estos valores según lo que necesites.
+  const scale = isMobile ? 0.7 : 0.8;
+  const iconSize = Math.round(24 * scale); // tamaño para los íconos SVG
+  const buttonPadding = Math.round(8 * scale); // padding para los botones
+
+  // Todos los controles se mostrarán en una línea horizontal, tanto en móvil como en PC.
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '10px',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+  // Función para generar el estilo de cada botón de herramienta
+  const toolButtonStyle = (active) => ({
+    background: active ? '#ad4500' : '#ff6600',
+    border: 'none',
+    padding: `${buttonPadding}px`,
+    borderRadius: '4px',
+    cursor: 'pointer'
+  });
 
   return (
     <div className="tool-controls" style={containerStyle}>
@@ -33,21 +42,13 @@ const ToolControls = ({
           onClick={() => setTool('brush')}
           className="tooltip-button"
           data-tooltip="Pincel"
-          style={{
-            background: tool === 'brush' ? '#ad4500' : '#ff6600',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          style={toolButtonStyle(tool === 'brush')}
         >
           <svg
             style={{ color: 'white' }}
-            className="w-6 h-6"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width={iconSize}
+            height={iconSize}
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -64,21 +65,13 @@ const ToolControls = ({
           onClick={() => setTool('line')}
           className="tooltip-button"
           data-tooltip="Línea"
-          style={{
-            background: tool === 'line' ? '#ad4500' : '#ff6600',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          style={toolButtonStyle(tool === 'line')}
         >
           <svg
             style={{ color: 'white' }}
-            className="w-6 h-6"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width={iconSize}
+            height={iconSize}
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -95,21 +88,13 @@ const ToolControls = ({
           onClick={() => setTool('eraser')}
           className="tooltip-button"
           data-tooltip="Borrador"
-          style={{
-            background: tool === 'eraser' ? '#ad4500' : '#ff6600',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          style={toolButtonStyle(tool === 'eraser')}
         >
           <svg
             style={{ color: 'white' }}
-            className="w-6 h-6"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width={iconSize}
+            height={iconSize}
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -130,21 +115,13 @@ const ToolControls = ({
           onClick={() => setTool('rectangle')}
           className="tooltip-button"
           data-tooltip="Rectángulo"
-          style={{
-            background: tool === 'rectangle' ? '#ad4500' : '#ff6600',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          style={toolButtonStyle(tool === 'rectangle')}
         >
           <svg
             style={{ color: 'white' }}
-            className="w-6 h-6"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width={iconSize}
+            height={iconSize}
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -155,21 +132,13 @@ const ToolControls = ({
           onClick={() => setTool('ellipse')}
           className="tooltip-button"
           data-tooltip="Elipse"
-          style={{
-            background: tool === 'ellipse' ? '#ad4500' : '#ff6600',
-            border: 'none',
-            padding: '8px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          style={toolButtonStyle(tool === 'ellipse')}
         >
           <svg
             style={{ color: 'white' }}
-            className="w-6 h-6"
-            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
+            width={iconSize}
+            height={iconSize}
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -181,32 +150,35 @@ const ToolControls = ({
       {/* Grupo de selectores para el pincel (tamaño y forma) */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '5px' }}>
-          {[1, 2, 3, 4, 5].map((size) => (
-            <button
-              key={size}
-              onClick={() => setBrushSize(size)}
-              className="tooltip-button"
-              data-tooltip={`${size}x${size}`}
-              style={{
-                width: `${15 + size * 3}px`,
-                height: `${15 + size * 3}px`,
-                background: brushSize === size ? '#ad4500' : '#ff6600',
-                border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
-                padding: 0,
-                margin: 0,
-                boxSizing: 'border-box',
-                cursor: 'pointer'
-              }}
-            ></button>
-          ))}
+          {[1, 2, 3, 4, 5].map((size) => {
+            const btnSize = (15 + size * 3) * scale;
+            return (
+              <button
+                key={size}
+                onClick={() => setBrushSize(size)}
+                className="tooltip-button"
+                data-tooltip={`${size}x${size}`}
+                style={{
+                  width: `${btnSize}px`,
+                  height: `${btnSize}px`,
+                  background: brushSize === size ? '#ad4500' : '#ff6600',
+                  border: brushSize === size ? '1px solid orange' : '1px solid #ccc',
+                  padding: 0,
+                  margin: 0,
+                  boxSizing: 'border-box',
+                  cursor: 'pointer'
+                }}
+              ></button>
+            );
+          })}
         </div>
         <button
           onClick={() => setBrushShape(brushShape === 'circle' ? 'square' : 'circle')}
           className="tooltip-button"
           data-tooltip={brushShape === 'circle' ? 'Cuadrado' : 'Círculo'}
           style={{
-            width: '40px',
-            height: '40px',
+            width: `${40 * scale}px`,
+            height: `${40 * scale}px`,
             background: '#ff6600',
             border: '1px solid #ccc',
             cursor: 'pointer',
@@ -217,8 +189,8 @@ const ToolControls = ({
         >
           <div
             style={{
-              width: '20px',
-              height: '20px',
+              width: `${20 * scale}px`,
+              height: `${20 * scale}px`,
               background: 'white',
               borderRadius: brushShape === 'circle' ? '50%' : '0'
             }}
