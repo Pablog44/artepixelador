@@ -29,8 +29,8 @@ function Controls({ page }) {
   // Nuevo estado para la duración de los frames (en segundos)
   const [frameDuration, setFrameDuration] = useState(0.6);
 
-  // **Estado para coord. del ratón (x,y)**
-  const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
+  // Estado para coord. del ratón (iniciando en 1,1)
+  const [mouseCoords, setMouseCoords] = useState({ x: 1, y: 1 });
 
   // Actualizar si se está en dispositivo móvil
   useEffect(() => {
@@ -128,7 +128,7 @@ function Controls({ page }) {
     a.click();
   };
 
-  // Nueva función para descargar el GIF usando gif.js
+  // Descargar GIF usando gif.js
   const handleDownloadGif = async () => {
     if (frames.length === 0) return;
     // Crea un objeto GIF con las opciones deseadas.
@@ -164,7 +164,7 @@ function Controls({ page }) {
     gif.render();
   };
 
-  // Para enviar a la vista del canvas (PixelatedImage o Rejilla)
+  // Determina si hay un frame seleccionado
   const frameData = selectedFrameIndex !== null ? frames[selectedFrameIndex] : null;
 
   // Estilos para los tooltips
@@ -191,6 +191,7 @@ function Controls({ page }) {
   return (
     <div className="controls-container">
       <style>{tooltipStyles}</style>
+
       <div 
         className="pixelated-image-wrapper" 
         onWheel={handleWheel}
@@ -203,12 +204,13 @@ function Controls({ page }) {
           pixelHeight={pixelHeight}
           selectedColor={selectedColor}
           scale={scale}
+          setScale={setScale}
           position={position}
           setPosition={setPosition}
           tool={tool}
           brushSize={brushSize}
           brushShape={brushShape}
-          // Enviamos un callback para recibir las coordenadas de píxeles
+          // Callback para recibir las coords del mouse en tiempo real
           onCoordinatesChange={(coords) => setMouseCoords(coords)}
         />
       </div>
@@ -219,12 +221,7 @@ function Controls({ page }) {
         setSelectedFrameIndex={setSelectedFrameIndex}
       />
 
-      {/* Mostramos aquí las coordenadas del ratón (empiezan en 1,1) */}
-      <div style={{ marginTop: '10px', textAlign: 'center' }}>
-        <strong>Coordenadas:</strong> X={mouseCoords.x}, Y={mouseCoords.y}
-      </div>
-
-      {/* Contenedor para centrar el botón de menú en móviles */}
+      {/* Botón de menú en móviles */}
       {isMobile && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
           <button
@@ -273,7 +270,9 @@ function Controls({ page }) {
         </div>
       )}
 
-      {/* Renderizado según si es vista de escritorio o móvil */}
+      {/* ============================
+          VISTA DE ESCRITORIO (NO MÓVIL)
+          ============================ */}
       {!isMobile ? (
         <div className="controls">
           <div className="controls-group">
@@ -317,7 +316,7 @@ function Controls({ page }) {
             />
           </div>
 
-          {/* Grupo para elegir la duración de los frames */}
+          {/* Grupo para elegir la duración de los frames y mostrar coords */}
           <div className="controls-group">
             <label>Duración: </label>
             <input
@@ -330,6 +329,11 @@ function Controls({ page }) {
               className="input-number"
               style={{ margin: '0 8px' }}
             />
+
+            {/* Aquí mostramos las coordenadas solo en escritorio */}
+            <span style={{ marginLeft: '16px' }}>
+              <strong>Coordenadas:</strong> X={mouseCoords.x}, Y={mouseCoords.y}
+            </span>
           </div>
 
           <div className="controls-group">
@@ -385,8 +389,9 @@ function Controls({ page }) {
           />
         </div>
       ) : (
-        // Vista móvil: si el menú está abierto se muestran todos los controles;
-        // en la vista mínima se muestran solo algunos y los ToolControls se disponen horizontalmente.
+        /* ============================
+           VISTA MÓVIL (MENU ABIERTO/MÍNIMO)
+           ============================ */
         menuOpen ? (
           <div className="controls">
             <div className="controls-group">
