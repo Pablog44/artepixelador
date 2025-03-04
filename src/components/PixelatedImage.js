@@ -11,7 +11,9 @@ function PixelatedImage({
   setPosition,
   tool,
   brushSize,
-  brushShape // 'square' o 'circle'
+  brushShape, // 'square' o 'circle'
+  // Nueva prop para notificar coordenadas de mouse
+  onCoordinatesChange
 }) {
   const sourceCanvasRef = useRef(null);
   const outputCanvasRef = useRef(null);
@@ -199,14 +201,14 @@ function PixelatedImage({
     // Recorremos la zona total, y solo pintamos el borde
     for (let py = minY; py <= maxY; py++) {
       for (let px = minX; px <= maxX; px++) {
-        const topBorder = (py < minY + size); 
+        const topBorder = (py < minY + size);
         const bottomBorder = (py > maxY - size);
         const leftBorder = (px < minX + size);
         const rightBorder = (px > maxX - size);
 
         // Si está en alguno de los bordes
         if (topBorder || bottomBorder || leftBorder || rightBorder) {
-          drawPixel(ctx, px, py, color, 1, 'square'); 
+          drawPixel(ctx, px, py, color, 1, 'square');
         }
       }
     }
@@ -248,8 +250,8 @@ function PixelatedImage({
               drawPixel(ctx, px, py, color, 1, 'square');
             }
           } else {
-            // Si la elipse interior es <= 0, 
-            // significa que el brushSize es tan grande que no hay hueco, 
+            // Si la elipse interior es <= 0,
+            // significa que el brushSize es tan grande que no hay hueco,
             // pintamos toda la elipse
             drawPixel(ctx, px, py, color, 1, 'square');
           }
@@ -276,6 +278,13 @@ function PixelatedImage({
   };
 
   const handleMouseMove = (e) => {
+    // Notificamos siempre las coordenadas
+    const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
+    if (onCoordinatesChange) {
+      // Sumamos 1 para que el (0,0) "real" se muestre como (1,1)
+      onCoordinatesChange({ x: x + 1, y: y + 1 });
+    }
+
     if (isPanning) {
       setPosition({
         x: e.clientX - startCoords.x,
@@ -325,13 +334,20 @@ function PixelatedImage({
 
   const handleTouchMove = (e) => {
     e.preventDefault();
+    const touch = e.touches[0];
+
+    // Notificamos las coordenadas en evento táctil
+    const { x, y } = getCanvasCoordinates(touch.clientX, touch.clientY);
+    if (onCoordinatesChange) {
+      onCoordinatesChange({ x: x + 1, y: y + 1 });
+    }
+
     if (
       isDrawing && 
       tool !== 'line' && 
       tool !== 'rectangle' && 
       tool !== 'ellipse'
     ) {
-      const touch = e.touches[0];
       paintOrErase(touch.clientX, touch.clientY, tool);
     }
   };

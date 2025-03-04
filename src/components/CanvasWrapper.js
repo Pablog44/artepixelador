@@ -18,8 +18,9 @@ const CanvasWrapper = ({
   tool,
   brushSize,
   brushShape,
+  onCoordinatesChange
 }) => {
-  // Integra el hook para actualizar la escala
+  // Integra el hook para actualizar la escala (gestos de pinch-zoom en móviles).
   usePinchZoom((scaleChange) => {
     // Por ejemplo, podrías actualizar la escala de forma acumulativa o establecer un nuevo valor basado en scaleChange
     setScale((prevScale) => {
@@ -43,6 +44,8 @@ const CanvasWrapper = ({
         tool={tool}
         brushSize={brushSize}
         brushShape={brushShape}
+        // Pasa la prop también a Rejilla en caso de que quieras mostrar coords ahí.
+        onCoordinatesChange={onCoordinatesChange}
       />
     );
   } else {
@@ -59,6 +62,8 @@ const CanvasWrapper = ({
         tool={tool}
         brushSize={brushSize}
         brushShape={brushShape}
+        // Pasa el callback a PixelatedImage
+        onCoordinatesChange={onCoordinatesChange}
       />
     );
   }
