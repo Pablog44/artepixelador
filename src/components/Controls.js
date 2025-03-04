@@ -29,6 +29,9 @@ function Controls({ page }) {
   // Nuevo estado para la duración de los frames (en segundos)
   const [frameDuration, setFrameDuration] = useState(0.6);
 
+  // **Estado para coord. del ratón (x,y)**
+  const [mouseCoords, setMouseCoords] = useState({ x: 0, y: 0 });
+
   // Actualizar si se está en dispositivo móvil
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -134,7 +137,6 @@ function Controls({ page }) {
       quality: 10,
       workerScript: `${process.env.PUBLIC_URL}/gif.worker.js`
     });
-    
 
     // Función para cargar una imagen a partir de un dataURL.
     const loadImage = (dataUrl) => {
@@ -206,6 +208,8 @@ function Controls({ page }) {
           tool={tool}
           brushSize={brushSize}
           brushShape={brushShape}
+          // Enviamos un callback para recibir las coordenadas de píxeles
+          onCoordinatesChange={(coords) => setMouseCoords(coords)}
         />
       </div>
 
@@ -214,6 +218,11 @@ function Controls({ page }) {
         selectedFrameIndex={selectedFrameIndex}
         setSelectedFrameIndex={setSelectedFrameIndex}
       />
+
+      {/* Mostramos aquí las coordenadas del ratón (empiezan en 1,1) */}
+      <div style={{ marginTop: '10px', textAlign: 'center' }}>
+        <strong>Coordenadas:</strong> X={mouseCoords.x}, Y={mouseCoords.y}
+      </div>
 
       {/* Contenedor para centrar el botón de menú en móviles */}
       {isMobile && (
@@ -500,7 +509,7 @@ function Controls({ page }) {
                 display: 'grid',
                 gridTemplateAreas: `" . up ."
                                     "left . right"
-                                    " . down ."` ,
+                                    " . down ."`,
                 gridGap: '5px',
                 justifyContent: 'center',
                 alignItems: 'center',
