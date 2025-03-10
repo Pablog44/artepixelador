@@ -521,16 +521,16 @@ function Controls({ page }) {
                 margin: '10px 0'
               }}
             >
-              <button style={{ gridArea: 'up' }} className="button" onClick={() => handleMove('up')}>
+              <button style={{ gridArea: 'up' }} className="button" onClick={() => handleMove('down')}>
                 ↑
               </button>
-              <button style={{ gridArea: 'left' }} className="button" onClick={() => handleMove('left')}>
+              <button style={{ gridArea: 'left' }} className="button" onClick={() => handleMove('right')}>
                 ←
               </button>
-              <button style={{ gridArea: 'right' }} className="button" onClick={() => handleMove('right')}>
+              <button style={{ gridArea: 'right' }} className="button" onClick={() => handleMove('left')}>
                 →
               </button>
-              <button style={{ gridArea: 'down' }} className="button" onClick={() => handleMove('down')}>
+              <button style={{ gridArea: 'down' }} className="button" onClick={() => handleMove('up')}>
                 ↓
               </button>
             </div>

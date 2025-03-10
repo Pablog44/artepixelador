@@ -6,16 +6,16 @@ const MovementControls = ({ handleMove }) => {
 
   return (
     <div className="move-controls">
-      <button onClick={() => handleMove('up')} className="button" style={buttonStyle}>
+      <button onClick={() => handleMove('down')} className="button" style={buttonStyle}>
         ↑
       </button>
-      <button onClick={() => handleMove('left')} className="button" style={buttonStyle}>
+      <button onClick={() => handleMove('right')} className="button" style={buttonStyle}>
         ←
       </button>
-      <button onClick={() => handleMove('down')} className="button" style={buttonStyle}>
+      <button onClick={() => handleMove('up')} className="button" style={buttonStyle}>
         ↓
       </button>
-      <button onClick={() => handleMove('right')} className="button" style={buttonStyle}>
+      <button onClick={() => handleMove('left')} className="button" style={buttonStyle}>
         →
       </button>
     </div>
